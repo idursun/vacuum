@@ -1,12 +1,14 @@
+mod context;
 mod executor;
 
+pub use context::Context;
 pub use executor::Ops;
 
-use crate::executors::executor::{Context, ContextPair};
 use crate::{Action, Folder};
 use std::path::PathBuf;
 
 pub type FileSystemExecutor = ContextPair<PathBuf>;
+pub(crate) type ContextPair<E> = (E, E);
 
 fn execute_actions<O>(executor: O, actions: &Vec<Action>, level: usize)
 where
