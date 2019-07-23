@@ -5,7 +5,7 @@ pub trait Context: Sized {
     fn home(&self) -> Self;
     fn config(&self) -> Self;
     fn sub<S: AsRef<str>>(&self, sub: S) -> Self;
-    fn search(&self, pattern: &String) -> Vec<Self>;
+    fn search(&self, pattern: &str) -> Vec<Self>;
 }
 
 impl Context for PathBuf {
@@ -23,7 +23,7 @@ impl Context for PathBuf {
         s
     }
 
-    fn search(&self, pattern: &String) -> Vec<Self> {
+    fn search(&self, pattern: &str) -> Vec<Self> {
         vec![PathBuf::from("A")]
     }
 }
@@ -44,7 +44,7 @@ impl Context for ContextPair<PathBuf> {
         (source, dest)
     }
 
-    fn search(&self, pattern: &String) -> Vec<Self> {
+    fn search(&self, pattern: &str) -> Vec<Self> {
         let sources = self.0.search(pattern);
         let mut ret = vec![];
         for source in sources {
