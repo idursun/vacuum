@@ -1,30 +1,8 @@
-use crate::executors::FileSystemExecutor;
-use ron::ser::PrettyConfig;
-use serde::{Deserialize, Serialize};
-
+mod app;
 mod executors;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct App {
-    pub name: String,
-    pub actions: Vec<Action>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum Folder {
-    Home,
-    Config,
-    Custom(String),
-    Search(String),
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum Action {
-    Copy(String),
-    CopyGlob(String),
-    Context(Folder, Vec<Action>),
-    Execute(String),
-}
+use crate::app::{Action, App, Folder};
+use crate::executors::FileSystemExecutor;
 
 fn fish() -> App {
     App {
@@ -65,8 +43,7 @@ fn main() {
         //        println!("{}", serialized);
         //        println!("{:?}", serde_json::from_str::<App<'_>>(&serialized));
 
-        let pretty = PrettyConfig::default();
-        let result = ron::ser::to_string_pretty(app, pretty).unwrap();
+        let result = ron::ser::to_string(app).unwrap();
         println!("{}", result);
         let result = result.as_bytes();
         //println!("{}", result);
