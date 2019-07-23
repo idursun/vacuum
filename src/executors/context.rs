@@ -45,8 +45,8 @@ impl Context for ContextPair<PathBuf> {
     }
 
     fn search(&self, pattern: &str) -> Vec<Self> {
-        let sources = self.0.search(pattern);
         let mut ret = vec![];
+        let sources = self.0.search(pattern);
         for source in sources {
             let mut ndest = self.1.clone();
             ndest.push("A");
