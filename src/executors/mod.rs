@@ -10,9 +10,9 @@ use std::path::PathBuf;
 pub type FileSystemExecutor = ContextPair<PathBuf>;
 pub(crate) type ContextPair<E> = (E, E);
 
-fn execute_actions<O>(executor: O, actions: &Vec<Action>, level: usize)
+fn execute_actions<E>(executor: E, actions: &[Action])
 where
-    O: Ops + Context,
+    E: Ops + Context,
 {
     for step in actions {
         for _ in 0..level {
