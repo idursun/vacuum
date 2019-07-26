@@ -45,11 +45,15 @@ impl Context for PathBuf {
 
 impl Context for ContextPair<PathBuf> {
     fn home(&self) -> Self {
-        (self.0.home(), PathBuf::from("home"))
+        let mut destination = self.1.clone();
+        destination.push("home");
+        (self.0.home(), destination)
     }
 
     fn config(&self) -> Self {
-        (self.0.config(), PathBuf::from("config"))
+        let mut destination = self.1.clone();
+        destination.push("config");
+        (self.0.config(), destination)
     }
 
     fn sub<S: AsRef<str>>(&self, sub: S) -> Self {
