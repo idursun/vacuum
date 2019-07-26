@@ -19,12 +19,29 @@ impl Ops for ContextPair<PathBuf> {
     }
 
     fn copy_glob<S: AsRef<str>>(&self, pattern: S) {
-        println!(
-            "copying files matching {} from {} to {}",
-            pattern.as_ref(),
-            self.0.display(),
-            self.1.display()
+        let full_pattern = format!(
+            "{}{}{}",
+            self.0.to_str().unwrap(),
+            std::path::MAIN_SEPARATOR,
+            pattern.as_ref()
         );
+        for entry in glob::glob(full_pattern.as_ref()).unwrap() {
+            match entry {
+                Ok(path) => {
+                    let current = path.strip_prefix(self.0.as_path()).unwrap();
+                    let mut destination = self.1.clone();
+                    destination.push(current);
+
+                    println!(
+                        "copying files matching {} from {} to {}",
+                        pattern.as_ref(),
+                        path.display(),
+                        destination.display()
+                    );
+                }
+                _ => (),
+            }
+        }
     }
 
     fn execute<S: AsRef<str>>(&self, command: S) {
