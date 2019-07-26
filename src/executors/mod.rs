@@ -1,8 +1,8 @@
 mod context;
-mod executor;
+mod ops;
 
 pub use context::Context;
-pub use executor::Ops;
+pub use ops::Ops;
 
 use crate::{Action, Folder};
 use std::path::PathBuf;

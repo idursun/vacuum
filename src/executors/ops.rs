@@ -19,9 +19,10 @@ impl Ops for ContextPair<PathBuf> {
 
     fn copy_glob<S: AsRef<str>>(&self, pattern: S) {
         println!(
-            "copying files matching {} from {}",
+            "copying files matching {} from {} to {}",
             pattern.as_ref(),
-            self.0.display()
+            self.0.display(),
+            self.1.display()
         );
     }
 
