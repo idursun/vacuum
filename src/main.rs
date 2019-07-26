@@ -2,7 +2,7 @@ mod app;
 mod executors;
 
 use crate::app::{Action, App, Folder};
-use crate::executors::{file_system_executor, FileSystemExecutor};
+use crate::executors::file_system_executor;
 
 fn fish() -> App {
     App {

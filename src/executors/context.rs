@@ -32,11 +32,8 @@ impl Context for PathBuf {
             pattern
         );
         for entry in glob::glob(full_pattern.as_ref()).unwrap() {
-            match entry {
-                Ok(path) => {
-                    ret.push(path);
-                }
-                _ => (),
+            if let Ok(path) = entry {
+                ret.push(path);
             }
         }
         ret

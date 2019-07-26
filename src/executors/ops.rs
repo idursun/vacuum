@@ -19,7 +19,7 @@ impl Ops for ContextPair<PathBuf> {
         }
 
         let mut destination = self.1.clone();
-        if let Ok(_) = fs::create_dir_all(destination.as_path()) {
+        if fs::create_dir_all(destination.as_path()).is_ok() {
             destination.push(file_name.as_ref());
             fs::copy(source.as_path(), destination.as_path()).expect("failed to copy");
         }
@@ -34,22 +34,18 @@ impl Ops for ContextPair<PathBuf> {
         );
 
         for entry in glob::glob(full_pattern.as_ref()).unwrap() {
-            match entry {
-                Ok(path_buf) => {
-                    if path_buf.is_dir() {
-                        continue;
-                    }
-                    let current = path_buf.strip_prefix(self.0.as_path()).unwrap();
-                    let mut destination = self.1.clone();
-                    destination.push(current);
-                    let dest_dir = destination.parent().unwrap();
-
-                    if let Ok(_) = fs::create_dir_all(&dest_dir) {
-                        fs::copy(path_buf.as_path(), destination.as_path())
-                            .expect("failed to copy");
-                    }
+            if let Ok(path_buf) = entry {
+                if path_buf.is_dir() {
+                    continue;
                 }
-                _ => (),
+                let current = path_buf.strip_prefix(self.0.as_path()).unwrap();
+                let mut destination = self.1.clone();
+                destination.push(current);
+                let dest_dir = destination.parent().unwrap();
+
+                if fs::create_dir_all(&dest_dir).is_ok() {
+                    fs::copy(path_buf.as_path(), destination.as_path()).expect("failed to copy");
+                }
             }
         }
     }
