@@ -1,5 +1,8 @@
 use crate::executors::ContextPair;
-use std::path::PathBuf;
+use std::{
+    fs,
+    path::{self, PathBuf},
+};
 
 pub trait Ops {
     fn copy<S: AsRef<str>>(&self, file_name: S);
@@ -9,20 +12,24 @@ pub trait Ops {
 
 impl Ops for ContextPair<PathBuf> {
     fn copy<S: AsRef<str>>(&self, file_name: S) {
-        println!(
-            "copy: {source}{separator}{file_name} -> {target}{separator}{file_name}",
-            file_name = file_name.as_ref(),
-            separator = std::path::MAIN_SEPARATOR,
-            source = self.0.display(),
-            target = self.1.display()
-        );
+        let mut source = self.0.clone();
+        source.push(file_name.as_ref());
+        if !source.exists() {
+            return;
+        }
+
+        let mut destination = self.1.clone();
+        if let Ok(_) = fs::create_dir_all(destination.as_path()) {
+            destination.push(file_name.as_ref());
+            fs::copy(source.as_path(), destination.as_path()).expect("failed to copy");
+        }
     }
 
     fn copy_glob<S: AsRef<str>>(&self, pattern: S) {
         let full_pattern = format!(
             "{}{}{}",
             self.0.to_str().unwrap(),
-            std::path::MAIN_SEPARATOR,
+            path::MAIN_SEPARATOR,
             pattern.as_ref()
         );
         for entry in glob::glob(full_pattern.as_ref()).unwrap() {
