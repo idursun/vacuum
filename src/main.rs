@@ -9,7 +9,23 @@ fn fish() -> App {
         name: "fish".into(),
         actions: vec![Action::Context(
             Folder::Config,
-            vec![Action::CopyGlob("**/*".into())],
+            vec![Action::Context(
+                Folder::Custom("fish".into()),
+                vec![Action::CopyGlob("**/*".into())],
+            )],
+        )],
+    }
+}
+
+fn alacritty() -> App {
+    App {
+        name: "alacritty".into(),
+        actions: vec![Action::Context(
+            Folder::Config,
+            vec![Action::Context(
+                Folder::Custom("alacritty".into()),
+                vec![Action::Copy("alacritty.yml".into())],
+            )],
         )],
     }
 }
@@ -37,7 +53,7 @@ fn webstorm() -> App {
 }
 
 fn main() {
-    let apps = vec![fish(), webstorm()];
+    let apps = vec![fish(), alacritty(), webstorm()];
     for app in &apps {
         //        let serialized = serde_json::to_string(&app).unwrap();
         //        println!("{}", serialized);
