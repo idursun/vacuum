@@ -62,16 +62,19 @@ fn webstorm() -> App {
             Folder::Home,
             vec![Action::Context(
                 Folder::Search(".WebStorm*".into()),
-                vec![
-                    Action::Context(
-                        Folder::Custom("keymaps".into()),
-                        vec![Action::CopyGlob("*.xml".into())],
-                    ),
-                    Action::Context(
-                        Folder::Custom("options".into()),
-                        vec![Action::Copy("editor.xml".into())],
-                    ),
-                ],
+                vec![Action::Context(
+                    Folder::Custom("config".into()),
+                    vec![
+                        Action::Context(
+                            Folder::Custom("keymaps".into()),
+                            vec![Action::CopyGlob("*.xml".into())],
+                        ),
+                        Action::Context(
+                            Folder::Custom("options".into()),
+                            vec![Action::Copy("editor.xml".into())],
+                        ),
+                    ],
+                )],
             )],
         )],
     }
