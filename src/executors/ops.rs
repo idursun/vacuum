@@ -10,10 +10,11 @@ pub trait Ops {
 impl Ops for ContextPair<PathBuf> {
     fn copy<S: AsRef<str>>(&self, file_name: S) {
         println!(
-            "copying {} from {} to {}",
-            file_name.as_ref(),
-            self.0.display(),
-            self.1.display()
+            "copy: {source}{separator}{file_name} -> {target}{separator}{file_name}",
+            file_name = file_name.as_ref(),
+            separator = std::path::MAIN_SEPARATOR,
+            source = self.0.display(),
+            target = self.1.display()
         );
     }
 
