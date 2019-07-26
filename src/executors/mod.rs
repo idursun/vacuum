@@ -10,7 +10,11 @@ use std::path::PathBuf;
 pub type FileSystemExecutor = ContextPair<PathBuf>;
 pub(crate) type ContextPair<E> = (E, E);
 
-fn execute_actions<E>(executor: E, actions: &[Action])
+pub fn file_system_executor(target_dir: PathBuf) -> FileSystemExecutor {
+    (PathBuf::new(), target_dir)
+}
+
+fn execute_actions<E>(executor: &E, actions: &[Action])
 where
     E: Ops + Context,
 {
@@ -28,7 +32,7 @@ where
 
                 for sub_context in sub_contexts {
                     //let sub_executor = executor.sub(sub_context);
-                    execute_actions(sub_context, &sub_actions);
+                    execute_actions(&sub_context, &sub_actions);
                 }
             }
             Action::Execute(command) => executor.execute(command),
@@ -36,9 +40,7 @@ where
     }
 }
 
-pub fn execute<E: Ops + Context + Default>(app: &crate::App) {
+pub fn execute<E: Ops + Context + Default>(executor: &E, app: &crate::App) {
     println!("executing {}", app.name);
-    let executor = E::default();
-
     execute_actions(executor, &app.actions);
 }
