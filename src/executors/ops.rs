@@ -32,19 +32,22 @@ impl Ops for ContextPair<PathBuf> {
             path::MAIN_SEPARATOR,
             pattern.as_ref()
         );
+
         for entry in glob::glob(full_pattern.as_ref()).unwrap() {
             match entry {
-                Ok(path) => {
-                    let current = path.strip_prefix(self.0.as_path()).unwrap();
+                Ok(path_buf) => {
+                    if path_buf.is_dir() {
+                        continue;
+                    }
+                    let current = path_buf.strip_prefix(self.0.as_path()).unwrap();
                     let mut destination = self.1.clone();
                     destination.push(current);
+                    let dest_dir = destination.parent().unwrap();
 
-                    println!(
-                        "copying files matching {} from {} to {}",
-                        pattern.as_ref(),
-                        path.display(),
-                        destination.display()
-                    );
+                    if let Ok(_) = fs::create_dir_all(&dest_dir) {
+                        fs::copy(path_buf.as_path(), destination.as_path())
+                            .expect("failed to copy");
+                    }
                 }
                 _ => (),
             }
