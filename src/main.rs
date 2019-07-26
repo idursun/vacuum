@@ -30,6 +30,31 @@ fn alacritty() -> App {
     }
 }
 
+fn goland() -> App {
+    App {
+        name: "goland".into(),
+        actions: vec![Action::Context(
+            Folder::Home,
+            vec![Action::Context(
+                Folder::Search(".GoLand*".into()),
+                vec![Action::Context(
+                    Folder::Custom("config".into()),
+                    vec![
+                        Action::Context(
+                            Folder::Custom("keymaps".into()),
+                            vec![Action::CopyGlob("*.xml".into())],
+                        ),
+                        Action::Context(
+                            Folder::Custom("options".into()),
+                            vec![Action::Copy("editor.xml".into())],
+                        ),
+                    ],
+                )],
+            )],
+        )],
+    }
+}
+
 fn webstorm() -> App {
     App {
         name: "webstorm".into(),
@@ -53,7 +78,7 @@ fn webstorm() -> App {
 }
 
 fn main() {
-    let apps = vec![fish(), alacritty(), webstorm()];
+    let apps = vec![fish(), alacritty(), webstorm(), goland()];
     for app in &apps {
         //        let serialized = serde_json::to_string(&app).unwrap();
         //        println!("{}", serialized);
