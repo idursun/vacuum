@@ -24,7 +24,22 @@ impl Context for PathBuf {
     }
 
     fn search(&self, pattern: &str) -> Vec<Self> {
-        vec![PathBuf::from("A")]
+        let mut ret = vec![];
+        let full_pattern = format!(
+            "{}{}{}",
+            self.to_str().unwrap(),
+            std::path::MAIN_SEPARATOR,
+            pattern
+        );
+        for entry in glob::glob(full_pattern.as_ref()).unwrap() {
+            match entry {
+                Ok(path) => {
+                    ret.push(path);
+                }
+                _ => (),
+            }
+        }
+        ret
     }
 }
 
@@ -48,9 +63,10 @@ impl Context for ContextPair<PathBuf> {
         let mut ret = vec![];
         let sources = self.0.search(pattern);
         for source in sources {
-            let mut ndest = self.1.clone();
-            ndest.push("A");
-            ret.push((source, ndest))
+            let remaining = source.strip_prefix(self.0.as_path()).unwrap();
+            let mut new_destination = self.1.clone();
+            new_destination.push(remaining);
+            ret.push((source, new_destination))
         }
         ret
     }
