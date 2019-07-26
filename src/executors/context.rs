@@ -45,11 +45,11 @@ impl Context for PathBuf {
 
 impl Context for ContextPair<PathBuf> {
     fn home(&self) -> Self {
-        (self.0.home(), PathBuf::new())
+        (self.0.home(), PathBuf::from("home"))
     }
 
     fn config(&self) -> Self {
-        (self.0.config(), PathBuf::new())
+        (self.0.config(), PathBuf::from("config"))
     }
 
     fn sub<S: AsRef<str>>(&self, sub: S) -> Self {
