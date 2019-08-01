@@ -2,7 +2,7 @@ mod app;
 mod executors;
 
 use crate::app::{Action, App, Folder};
-use crate::executors::file_system_executor;
+use crate::executors::FileSystemExecutor;
 
 fn fish() -> App {
     App {
@@ -91,7 +91,7 @@ fn main() {
         if let Ok(mut current_dir) = std::env::current_dir() {
             current_dir.push("output");
             current_dir.push(&app.name);
-            let executor = file_system_executor(current_dir);
+            let executor = FileSystemExecutor::new(current_dir);
             executors::execute(&executor, app);
         }
     }

@@ -1,5 +1,4 @@
 use std::path::PathBuf;
-pub(crate) type ContextPair<E> = (E, E);
 
 pub trait Context: Sized {
     fn home(&self) -> Self;
@@ -35,39 +34,6 @@ impl Context for PathBuf {
             if let Ok(path) = entry {
                 ret.push(path);
             }
-        }
-        ret
-    }
-}
-
-impl Context for ContextPair<PathBuf> {
-    fn home(&self) -> Self {
-        let mut destination = self.1.clone();
-        destination.push("home");
-        (self.0.home(), destination)
-    }
-
-    fn config(&self) -> Self {
-        let mut destination = self.1.clone();
-        destination.push("config");
-        (self.0.config(), destination)
-    }
-
-    fn sub<S: AsRef<str>>(&self, sub: S) -> Self {
-        let (mut source, mut dest) = self.clone();
-        source.push(sub.as_ref());
-        dest.push(sub.as_ref());
-        (source, dest)
-    }
-
-    fn search(&self, pattern: &str) -> Vec<Self> {
-        let mut ret = vec![];
-        let sources = self.0.search(pattern);
-        for source in sources {
-            let remaining = source.strip_prefix(self.0.as_path()).unwrap();
-            let mut new_destination = self.1.clone();
-            new_destination.push(remaining);
-            ret.push((source, new_destination))
         }
         ret
     }

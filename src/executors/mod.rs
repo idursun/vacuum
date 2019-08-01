@@ -1,18 +1,12 @@
 mod context;
+mod file_system_executor;
 mod ops;
 
-pub use context::Context;
-pub use ops::Ops;
-
 use crate::{Action, Folder};
-use std::path::PathBuf;
+pub use context::Context;
+pub use file_system_executor::FileSystemExecutor;
 
-pub type FileSystemExecutor = ContextPair<PathBuf>;
-pub(crate) type ContextPair<E> = (E, E);
-
-pub fn file_system_executor(target_dir: PathBuf) -> FileSystemExecutor {
-    (PathBuf::new(), target_dir)
-}
+pub use ops::Ops;
 
 fn execute_actions<E>(executor: &E, actions: &[Action])
 where
