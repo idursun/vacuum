@@ -14,7 +14,7 @@ where
     C: Context + Default,
 {
     pub fn new(target_dir: C) -> Self {
-        FileSystemExecutor {
+        Self {
             source: C::default(),
             target: target_dir,
         }
@@ -60,14 +60,14 @@ impl Ops for FileSystemExecutor<PathBuf> {
 
 impl Context for FileSystemExecutor<PathBuf> {
     fn home(&self) -> Self {
-        FileSystemExecutor {
+        Self {
             source: self.source.home(),
             target: self.target.sub("home"),
         }
     }
 
     fn config(&self) -> Self {
-        FileSystemExecutor {
+        Self {
             source: self.source.config(),
             target: self.target.sub("config"),
         }
@@ -77,7 +77,7 @@ impl Context for FileSystemExecutor<PathBuf> {
         let source = self.source.sub(sub.as_ref());
         let target = self.target.sub(sub.as_ref());
 
-        FileSystemExecutor { source, target }
+        Self { source, target }
     }
 
     fn search(&self, pattern: &str) -> Vec<Self> {
@@ -86,7 +86,7 @@ impl Context for FileSystemExecutor<PathBuf> {
         for source in sources {
             let remaining = source.strip_prefix(self.source.as_path()).unwrap();
             let target = self.target.sub(remaining.to_str().unwrap());
-            ret.push(FileSystemExecutor { source, target })
+            ret.push(Self { source, target })
         }
         ret
     }
@@ -94,7 +94,7 @@ impl Context for FileSystemExecutor<PathBuf> {
 
 impl Default for FileSystemExecutor<PathBuf> {
     fn default() -> Self {
-        FileSystemExecutor {
+        Self {
             source: PathBuf::default(),
             target: PathBuf::default(),
         }
