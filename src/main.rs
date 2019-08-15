@@ -1,5 +1,6 @@
 mod app;
 mod executors;
+mod parser;
 
 use crate::app::{Action, App, Folder};
 use crate::executors::FileSystemExecutor;
