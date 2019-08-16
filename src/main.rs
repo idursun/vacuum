@@ -12,6 +12,8 @@ fn main() -> Result<(), error::VacuumError> {
         .filter_map(Result::ok)
         .into_iter();
 
+    let output_folder = std::env::args().nth(1).unwrap_or("output".to_owned());
+    let current_dir = std::env::current_dir()?;
     for entry in dir {
         if !entry.file_type()?.is_file() {
             continue;
@@ -19,10 +21,10 @@ fn main() -> Result<(), error::VacuumError> {
 
         let content = fs::read_to_string(entry.path()).unwrap();
         let app = parser::app(content)?;
-        let mut current_dir = std::env::current_dir()?;
-        current_dir.push("output");
-        current_dir.push(&app.name);
-        let executor = FileSystemExecutor::new(current_dir);
+        let mut app_dir = current_dir.clone();
+        app_dir.push(output_folder.clone());
+        app_dir.push(&app.name);
+        let executor = FileSystemExecutor::new(app_dir);
         println!("executing {}", app.name);
         executors::execute(&executor, &app)?;
     }
