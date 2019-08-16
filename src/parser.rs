@@ -69,6 +69,15 @@ fn parse_app<'a>() -> Parser<'a, char, App> {
     app.map(|(name, actions)| App { name, actions })
 }
 
+pub fn app(input: String) -> Result<App, Box<dyn std::error::Error>> {
+    let input = input.chars().collect::<Vec<_>>();
+    let result = parse_app().parse(&input);
+    match result {
+        Ok(app) => Ok(app),
+        Err(e) => Err("failed to parse".into()),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
