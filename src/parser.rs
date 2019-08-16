@@ -1,4 +1,5 @@
 use crate::app::{Action, App, Folder};
+use crate::error::VacuumError;
 use pom::parser::*;
 use std::iter::FromIterator;
 
@@ -69,13 +70,10 @@ fn parse_app<'a>() -> Parser<'a, char, App> {
     app.map(|(name, actions)| App { name, actions })
 }
 
-pub fn app(input: String) -> Result<App, Box<dyn std::error::Error>> {
+pub fn app(input: String) -> Result<App, VacuumError> {
     let input = input.chars().collect::<Vec<_>>();
     let result = parse_app().parse(&input);
-    match result {
-        Ok(app) => Ok(app),
-        Err(e) => Err(e.into()),
-    }
+    result.map_err(VacuumError::ParseError)
 }
 
 #[cfg(test)]
