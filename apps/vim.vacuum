@@ -1,0 +1,5 @@
+app "vim" {
+    home {
+       copy ".vimrc"
+    }
+}
