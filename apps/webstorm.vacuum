@@ -1,0 +1,14 @@
+app "webstorm" {
+    home {
+        search ".WebStorm*" {
+            cd "config" {
+                cd "keymaps" {
+                    copy_glob "*.xml"
+                }
+                cd "options" {
+                    copy "editor.xml"
+                }
+            }
+        }
+    }
+}
