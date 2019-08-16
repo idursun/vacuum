@@ -14,7 +14,7 @@ where
 {
     for step in actions {
         match step {
-            Action::Copy(filename) => executor.copy(filename),
+            Action::File(filename) => executor.copy_file(filename),
             Action::CopyGlob(pattern) => executor.copy_glob(pattern),
             Action::Context(context, sub_actions) => {
                 let sub_contexts = match context {

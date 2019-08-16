@@ -6,7 +6,7 @@ app "webstorm" {
                     copy_glob "*.xml"
                 }
                 cd "options" {
-                    copy "editor.xml"
+                    file "editor.xml"
                 }
             }
         }

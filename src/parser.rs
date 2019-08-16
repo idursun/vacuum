@@ -11,8 +11,8 @@ fn string<'a>() -> Parser<'a, char, String> {
     sym('\"') * char_string - sym('\"')
 }
 
-fn command_copy<'a>() -> Parser<'a, char, Action> {
-    (tag("copy") * space() * string()).map(Action::Copy)
+fn command_file<'a>() -> Parser<'a, char, Action> {
+    (tag("file") * space() * string()).map(Action::File)
 }
 
 fn command_copy_glob<'a>() -> Parser<'a, char, Action> {
@@ -51,7 +51,7 @@ fn context_custom<'a>() -> Parser<'a, char, Action> {
 }
 
 fn actions<'a>() -> Parser<'a, char, Vec<Action>> {
-    let item = command_copy()
+    let item = command_file()
         | command_copy_glob()
         | command_exec()
         | context_home()
@@ -85,7 +85,7 @@ mod tests {
     #[test]
     fn test_parse_context_custom() {
         let input = r#"cd "WebStorm" { 
-            copy "*.xml"; 
+            file "*.xml"; 
             exec "ls files" 
         }"#
         .chars()
@@ -97,7 +97,7 @@ mod tests {
             Ok(Action::Context(
                 Folder::Custom("WebStorm".into()),
                 vec![
-                    Action::Copy("*.xml".into()),
+                    Action::File("*.xml".into()),
                     Action::Execute("ls files".into())
                 ]
             ))
@@ -107,7 +107,7 @@ mod tests {
     #[test]
     fn test_parse_context_search() {
         let input = r#"search ".WebStorm*" { 
-            copy "*.xml"; 
+            file "*.xml"; 
             exec "ls files"
         }"#
         .chars()
@@ -119,7 +119,7 @@ mod tests {
             Ok(Action::Context(
                 Folder::Search(".WebStorm*".into()),
                 vec![
-                    Action::Copy("*.xml".into()),
+                    Action::File("*.xml".into()),
                     Action::Execute("ls files".into())
                 ]
             ))
@@ -129,7 +129,7 @@ mod tests {
     #[test]
     fn test_parse_context_home() {
         let input = r#"home { 
-            copy "*.xml"; 
+            file "*.xml"; 
             exec "ls files" 
         }"#
         .chars()
@@ -141,7 +141,7 @@ mod tests {
             Ok(Action::Context(
                 Folder::Home,
                 vec![
-                    Action::Copy("*.xml".into()),
+                    Action::File("*.xml".into()),
                     Action::Execute("ls files".into())
                 ]
             ))
@@ -151,7 +151,7 @@ mod tests {
     #[test]
     fn test_parse_actions() {
         let input = &r#"{ 
-            copy "*.xml"
+            file "*.xml"
             exec "ls files" 
         }"#
         .chars()
@@ -161,17 +161,17 @@ mod tests {
         assert_eq!(
             r,
             Ok(vec![
-                Action::Copy("*.xml".into()),
+                Action::File("*.xml".into()),
                 Action::Execute("ls files".into())
             ])
         )
     }
 
     #[test]
-    fn test_parse_copy() {
-        let input = r#"copy "keyboard.xml""#.chars().collect::<Vec<_>>();
-        let r = command_copy().parse(&input);
-        assert_eq!(r, Ok(Action::Copy("keyboard.xml".into())))
+    fn test_parse_file() {
+        let input = r#"file "keyboard.xml""#.chars().collect::<Vec<_>>();
+        let r = command_file().parse(&input);
+        assert_eq!(r, Ok(Action::File("keyboard.xml".into())))
     }
 
     #[test]
@@ -199,7 +199,7 @@ mod tests {
                                 copy_glob "*.xml"
                             }
                             cd "options" {
-                                copy "editor.xml"
+                                file "editor.xml"
                             }
                         }
                     }
@@ -226,7 +226,7 @@ mod tests {
                                 ),
                                 Action::Context(
                                     Folder::Custom("options".into()),
-                                    vec![Action::Copy("editor.xml".into())],
+                                    vec![Action::File("editor.xml".into())],
                                 ),
                             ],
                         )],

@@ -22,7 +22,7 @@ where
 }
 
 impl Ops for FileSystemExecutor<PathBuf> {
-    fn copy<S: AsRef<str>>(&self, file_name: S) {
+    fn copy_file<S: AsRef<str>>(&self, file_name: S) {
         let source = self.source.sub(file_name.as_ref());
         if !source.exists() {
             return;

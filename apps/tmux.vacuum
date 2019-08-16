@@ -1,5 +1,5 @@
 app "tmux"  {
     home {
-        copy ".tmux.conf"
+        file ".tmux.conf"
     }
 }

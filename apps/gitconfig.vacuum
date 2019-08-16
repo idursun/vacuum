@@ -1,5 +1,5 @@
 app "gitconfig" {
     home {
-        copy ".gitconfig"
+        file ".gitconfig"
     }
 }
