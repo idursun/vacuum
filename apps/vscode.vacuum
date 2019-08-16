@@ -5,5 +5,10 @@ app "VSCode" {
               file "settings.json"
           }
       }
-  }  
+      cd "Code - OSS" {
+          cd "User" {
+              file "settings.json"
+          }
+      }
+  }
 }
