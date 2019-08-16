@@ -1,0 +1,5 @@
+app "zsh" {
+    home {
+        file ".zshrc"
+    }
+}
