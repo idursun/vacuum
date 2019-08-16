@@ -74,7 +74,7 @@ pub fn app(input: String) -> Result<App, Box<dyn std::error::Error>> {
     let result = parse_app().parse(&input);
     match result {
         Ok(app) => Ok(app),
-        Err(e) => Err("failed to parse".into()),
+        Err(e) => Err(e.into()),
     }
 }
 

@@ -35,6 +35,5 @@ where
 }
 
 pub fn execute<E: Ops + Context + Default>(executor: &E, app: &crate::App) {
-    println!("executing {}", app.name);
     execute_actions(executor, &app.actions);
 }
