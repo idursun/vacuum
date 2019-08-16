@@ -5,18 +5,6 @@ mod parser;
 use crate::app::{Action, App, Folder};
 use crate::executors::FileSystemExecutor;
 use std::fs;
-fn fish() -> App {
-    App {
-        name: "fish".into(),
-        actions: vec![Action::Context(
-            Folder::Config,
-            vec![Action::Context(
-                Folder::Custom("fish".into()),
-                vec![Action::CopyGlob("**/*".into())],
-            )],
-        )],
-    }
-}
 
 fn main() {
     let dir = std::fs::read_dir("./apps/").unwrap();
