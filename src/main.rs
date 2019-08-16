@@ -18,19 +18,6 @@ fn fish() -> App {
     }
 }
 
-fn alacritty() -> App {
-    App {
-        name: "alacritty".into(),
-        actions: vec![Action::Context(
-            Folder::Config,
-            vec![Action::Context(
-                Folder::Custom("alacritty".into()),
-                vec![Action::Copy("alacritty.yml".into())],
-            )],
-        )],
-    }
-}
-
 fn main() {
     let dir = std::fs::read_dir("./apps/").unwrap();
     for entry in dir {

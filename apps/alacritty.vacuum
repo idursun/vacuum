@@ -1,0 +1,7 @@
+app "alacritty" {
+    config {
+        cd "alacritty" {
+            copy "alacritty.yml"
+        }
+    }
+}
