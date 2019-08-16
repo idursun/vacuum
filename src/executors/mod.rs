@@ -15,7 +15,7 @@ where
     for step in actions {
         match step {
             Action::File(filename) => executor.copy_file(filename),
-            Action::CopyGlob(pattern) => executor.copy_glob(pattern),
+            Action::Files(pattern) => executor.copy_files(pattern),
             Action::Context(context, sub_actions) => {
                 let sub_contexts = match context {
                     Folder::Home => vec![executor.home()],

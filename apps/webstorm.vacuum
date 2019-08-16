@@ -3,7 +3,7 @@ app "webstorm" {
         search ".WebStorm*" {
             cd "config" {
                 cd "keymaps" {
-                    copy_glob "*.xml"
+                    files "*.xml"
                 }
                 cd "options" {
                     file "editor.xml"

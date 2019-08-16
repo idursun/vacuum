@@ -15,7 +15,7 @@ pub enum Folder {
 #[derive(Debug, PartialEq)]
 pub enum Action {
     File(String),
-    CopyGlob(String),
+    Files(String),
     Context(Folder, Vec<Action>),
     Execute(String),
 }

@@ -34,7 +34,7 @@ impl Ops for FileSystemExecutor<PathBuf> {
         }
     }
 
-    fn copy_glob<S: AsRef<str>>(&self, pattern: S) {
+    fn copy_files<S: AsRef<str>>(&self, pattern: S) {
         for path in self.source.search(pattern.as_ref()) {
             if path.is_dir() {
                 continue;

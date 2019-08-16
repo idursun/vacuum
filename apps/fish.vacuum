@@ -1,7 +1,7 @@
 app "fish" {
     config {
         cd "fish" {
-            copy_glob "**/*"
+            files "**/*"
         }
     }
 }

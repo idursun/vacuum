@@ -15,8 +15,8 @@ fn command_file<'a>() -> Parser<'a, char, Action> {
     (tag("file") * space() * string()).map(Action::File)
 }
 
-fn command_copy_glob<'a>() -> Parser<'a, char, Action> {
-    (tag("copy_glob") * space() * string()).map(Action::CopyGlob)
+fn command_files<'a>() -> Parser<'a, char, Action> {
+    (tag("files") * space() * string()).map(Action::Files)
 }
 
 fn command_exec<'a>() -> Parser<'a, char, Action> {
@@ -52,7 +52,7 @@ fn context_custom<'a>() -> Parser<'a, char, Action> {
 
 fn actions<'a>() -> Parser<'a, char, Vec<Action>> {
     let item = command_file()
-        | command_copy_glob()
+        | command_files()
         | command_exec()
         | context_home()
         | context_config()
@@ -175,10 +175,10 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_copy_glob() {
-        let input = r#"copy_glob "*.xml""#.chars().collect::<Vec<_>>();
-        let r = command_copy_glob().parse(&input);
-        assert_eq!(r, Ok(Action::CopyGlob("*.xml".into())))
+    fn test_parse_files() {
+        let input = r#"files "*.xml""#.chars().collect::<Vec<_>>();
+        let r = command_files().parse(&input);
+        assert_eq!(r, Ok(Action::Files("*.xml".into())))
     }
 
     #[test]
@@ -196,7 +196,7 @@ mod tests {
                     search ".WebStorm*" {
                         cd "config" {
                             cd "keymaps" {
-                                copy_glob "*.xml"
+                                files "*.xml"
                             }
                             cd "options" {
                                 file "editor.xml"
@@ -222,7 +222,7 @@ mod tests {
                             vec![
                                 Action::Context(
                                     Folder::Custom("keymaps".into()),
-                                    vec![Action::CopyGlob("*.xml".into())],
+                                    vec![Action::Files("*.xml".into())],
                                 ),
                                 Action::Context(
                                     Folder::Custom("options".into()),
