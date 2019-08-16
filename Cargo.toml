@@ -1,5 +1,5 @@
 [package]
-name = "vacuum-experimental"
+name = "vacuum"
 version = "0.1.0"
 authors = ["ibrahim.dursun <ibrahim.dursun@gmail.com>"]
 edition = "2018"
