@@ -1,0 +1,9 @@
+app "VSCode" {
+  config {
+      cd "Code" {
+          cd "User" {
+              file "settings.json"
+          }
+      }
+  }  
+}
