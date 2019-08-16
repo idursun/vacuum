@@ -15,3 +15,5 @@ https://github.com/idursun/vacuum/tree/master/apps).
 
 - Clone the repository
 - Run `cargo run -- ./myconfigs` to _vacuum_ configurations into `./myconfigs`
+
+[![asciicast](https://asciinema.org/a/262882.svg)](https://asciinema.org/a/262882)
