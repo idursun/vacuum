@@ -31,31 +31,6 @@ fn alacritty() -> App {
     }
 }
 
-fn goland() -> App {
-    App {
-        name: "goland".into(),
-        actions: vec![Action::Context(
-            Folder::Home,
-            vec![Action::Context(
-                Folder::Search(".GoLand*".into()),
-                vec![Action::Context(
-                    Folder::Custom("config".into()),
-                    vec![
-                        Action::Context(
-                            Folder::Custom("keymaps".into()),
-                            vec![Action::CopyGlob("*.xml".into())],
-                        ),
-                        Action::Context(
-                            Folder::Custom("options".into()),
-                            vec![Action::Copy("editor.xml".into())],
-                        ),
-                    ],
-                )],
-            )],
-        )],
-    }
-}
-
 fn main() {
     let dir = std::fs::read_dir("./apps/").unwrap();
     for entry in dir {

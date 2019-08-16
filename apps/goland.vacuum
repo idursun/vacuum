@@ -1,0 +1,14 @@
+app "goland" {
+    home {
+        search ".GoLand*" {
+            cd "config" {
+                cd "keymaps" {
+                    copy_glob "*.xml"
+                }
+                cd "options" {
+                    copy "editor.xml"
+                }
+            }
+        }
+    }
+}
