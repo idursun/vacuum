@@ -1,4 +1,4 @@
-app "webstorm" {
+app "WebStorm" {
     home {
         search ".WebStorm*" {
             cd "config" {

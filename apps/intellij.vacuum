@@ -1,6 +1,6 @@
-app "GoLand" {
+app "IntelliJ" {
     home {
-        search ".GoLand*" {
+        search ".IntelliJ*" {
             cd "config" {
                 cd "keymaps" {
                     files "*.xml"

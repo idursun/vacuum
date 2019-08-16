@@ -1,0 +1,7 @@
+app "nvim" {
+    config {
+        cd "nvim" {
+            file "init.vim"
+        }
+    }
+}

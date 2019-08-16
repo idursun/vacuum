@@ -1,6 +1,6 @@
-app "GoLand" {
+app "CLion" {
     home {
-        search ".GoLand*" {
+        search ".CLion*" {
             cd "config" {
                 cd "keymaps" {
                     files "*.xml"
