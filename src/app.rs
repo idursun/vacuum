@@ -1,12 +1,10 @@
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct App {
     pub name: String,
     pub actions: Vec<Action>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Folder {
     Home,
     Config,
@@ -14,7 +12,7 @@ pub enum Folder {
     Search(String),
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Action {
     Copy(String),
     CopyGlob(String),

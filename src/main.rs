@@ -84,11 +84,6 @@ fn webstorm() -> App {
 fn main() {
     let apps = vec![fish(), alacritty(), webstorm(), goland()];
     for app in &apps {
-        let pretty = ron::ser::PrettyConfig::default();
-        let result = ron::ser::to_string_pretty(app, pretty).unwrap();
-        println!("{}", result);
-        let back = ron::de::from_bytes::<App>(result.as_bytes());
-        println!("{:?}", back);
         if let Ok(mut current_dir) = std::env::current_dir() {
             current_dir.push("output");
             current_dir.push(&app.name);
