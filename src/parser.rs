@@ -1,56 +1,56 @@
 use crate::app::{Action, App, Folder};
-use pom::parser::{call, list, none_of, one_of, seq, sym};
-use pom::Parser;
+use pom::parser::*;
+use std::iter::FromIterator;
 
-fn space() -> Parser<u8, ()> {
-    one_of(b" \t\r\n").repeat(0..).discard()
+fn space<'a>() -> Parser<'a, char, ()> {
+    one_of(" \t\r\n").repeat(0..).discard()
 }
 
-fn string() -> Parser<u8, String> {
-    let char_string = none_of(b"\\\"").repeat(0..).convert(String::from_utf8);
-    sym(b'\"') * char_string - sym(b'\"')
+fn string<'a>() -> Parser<'a, char, String> {
+    let char_string = none_of("\\\"").repeat(0..).map(String::from_iter);
+    sym('\"') * char_string - sym('\"')
 }
 
-fn command_copy() -> Parser<u8, Action> {
-    (seq(b"copy") * space() * string()).map(Action::Copy)
+fn command_copy<'a>() -> Parser<'a, char, Action> {
+    (tag("copy") * space() * string()).map(Action::Copy)
 }
 
-fn command_copy_glob() -> Parser<u8, Action> {
-    (seq(b"copy_glob") * space() * string()).map(Action::CopyGlob)
+fn command_copy_glob<'a>() -> Parser<'a, char, Action> {
+    (tag("copy_glob") * space() * string()).map(Action::CopyGlob)
 }
 
-fn command_exec() -> Parser<u8, Action> {
-    let command = seq(b"execute") | seq(b"exec");
+fn command_exec<'a>() -> Parser<'a, char, Action> {
+    let command = tag("execute") | tag("exec");
     (command * space() * string()).map(Action::Execute)
 }
 
-fn context_home() -> Parser<u8, Action> {
-    seq(b"home")
+fn context_home<'a>() -> Parser<'a, char, Action> {
+    tag("home")
         * space()
         * call(actions)
             .map(|actions| Action::Context(Folder::Home, actions))
             .name("home")
 }
 
-fn context_config() -> Parser<u8, Action> {
-    seq(b"config")
+fn context_config<'a>() -> Parser<'a, char, Action> {
+    tag("config")
         * space()
         * call(actions)
             .map(|actions| Action::Context(Folder::Config, actions))
             .name("config")
 }
 
-fn context_search() -> Parser<u8, Action> {
-    let f = seq(b"search") * space() * string() + space() * call(actions).name("search");
+fn context_search<'a>() -> Parser<'a, char, Action> {
+    let f = tag("search") * space() * string() + space() * call(actions).name("search");
     f.map(|(pattern, actions)| Action::Context(Folder::Search(pattern), actions))
 }
 
-fn context_custom() -> Parser<u8, Action> {
-    let f = seq(b"cd") * space() * string() + space() * call(actions).name("custom");
+fn context_custom<'a>() -> Parser<'a, char, Action> {
+    let f = tag("cd") * space() * string() + space() * call(actions).name("custom");
     f.map(|(folder, actions)| Action::Context(Folder::Custom(folder), actions))
 }
 
-fn actions() -> Parser<u8, Vec<Action>> {
+fn actions<'a>() -> Parser<'a, char, Vec<Action>> {
     let item = command_copy()
         | command_copy_glob()
         | command_exec()
@@ -59,13 +59,13 @@ fn actions() -> Parser<u8, Vec<Action>> {
         | context_search()
         | context_custom();
 
-    let items = list(item, sym(b';').opt() * space());
-    let actions = sym(b'{') * space() * items - space() * sym(b'}');
+    let items = list(item, sym(';').opt() * space());
+    let actions = sym('{') * space() * items - space() * sym('}');
     actions.name("actions")
 }
 
-fn parse_app() -> Parser<u8, App> {
-    let app = space() * seq(b"app") * space() * string() + space() * call(actions);
+fn parse_app<'a>() -> Parser<'a, char, App> {
+    let app = space() * tag("app") * space() * string() + space() * call(actions);
     app.map(|(name, actions)| App { name, actions })
 }
 
@@ -75,12 +75,13 @@ mod tests {
     use crate::app::Action;
     #[test]
     fn test_parse_context_custom() {
-        let r = context_custom().parse(
-            br#"cd "WebStorm" { 
+        let input = r#"cd "WebStorm" { 
             copy "*.xml"; 
             exec "ls files" 
-        }"#,
-        );
+        }"#
+        .chars()
+        .collect::<Vec<_>>();
+        let r = context_custom().parse(&input);
 
         assert_eq!(
             r,
@@ -96,13 +97,14 @@ mod tests {
 
     #[test]
     fn test_parse_context_search() {
-        let r = context_search().parse(
-            br#"search ".WebStorm*" { 
+        let input = r#"search ".WebStorm*" { 
             copy "*.xml"; 
             exec "ls files"
-        }"#,
-        );
+        }"#
+        .chars()
+        .collect::<Vec<_>>();
 
+        let r = context_search().parse(&input);
         assert_eq!(
             r,
             Ok(Action::Context(
@@ -117,13 +119,14 @@ mod tests {
 
     #[test]
     fn test_parse_context_home() {
-        let r = context_home().parse(
-            br#"home { 
+        let input = r#"home { 
             copy "*.xml"; 
             exec "ls files" 
-        }"#,
-        );
+        }"#
+        .chars()
+        .collect::<Vec<_>>();
 
+        let r = context_home().parse(&input);
         assert_eq!(
             r,
             Ok(Action::Context(
@@ -138,13 +141,14 @@ mod tests {
 
     #[test]
     fn test_parse_actions() {
-        let r = actions().parse(
-            br#"{ 
+        let input = &r#"{ 
             copy "*.xml"
             exec "ls files" 
-        }"#,
-        );
+        }"#
+        .chars()
+        .collect::<Vec<_>>();
 
+        let r = actions().parse(&input);
         assert_eq!(
             r,
             Ok(vec![
@@ -156,26 +160,28 @@ mod tests {
 
     #[test]
     fn test_parse_copy() {
-        let r = command_copy().parse(br#"copy "keyboard.xml""#);
+        let input = r#"copy "keyboard.xml""#.chars().collect::<Vec<_>>();
+        let r = command_copy().parse(&input);
         assert_eq!(r, Ok(Action::Copy("keyboard.xml".into())))
     }
 
     #[test]
     fn test_parse_copy_glob() {
-        let r = command_copy_glob().parse(br#"copy_glob "*.xml""#);
+        let input = r#"copy_glob "*.xml""#.chars().collect::<Vec<_>>();
+        let r = command_copy_glob().parse(&input);
         assert_eq!(r, Ok(Action::CopyGlob("*.xml".into())))
     }
 
     #[test]
     fn test_parse_execute() {
-        let r = command_exec().parse(br#"exec "ls home""#);
+        let input = r#"exec "ls home""#.chars().collect::<Vec<_>>();
+        let r = command_exec().parse(&input);
         assert_eq!(r, Ok(Action::Execute("ls home".into())))
     }
 
     #[test]
     fn test_parse_app() {
-        let r = parse_app().parse(
-            br#"
+        let input = r#"
             app "webstorm" {
                 home {
                     search ".WebStorm*" {
@@ -189,8 +195,11 @@ mod tests {
                         }
                     }
                 }
-            }"#,
-        );
+            }"#
+        .chars()
+        .collect::<Vec<_>>();
+
+        let r = parse_app().parse(&input);
         assert_eq!(
             r,
             Ok(App {
