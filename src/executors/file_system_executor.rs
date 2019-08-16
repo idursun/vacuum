@@ -1,5 +1,6 @@
 use super::context::Context;
 use super::ops::Ops;
+use crate::error::VacuumError;
 use std::fs;
 use std::path::PathBuf;
 
@@ -22,39 +23,50 @@ where
 }
 
 impl Ops for FileSystemExecutor<PathBuf> {
-    fn copy_file<S: AsRef<str>>(&self, file_name: S) {
+    fn copy_file<S: AsRef<str>>(&self, file_name: S) -> Result<(), VacuumError> {
         let source = self.source.sub(file_name.as_ref());
         if !source.exists() {
-            return;
+            return Ok(());
         }
 
         if fs::create_dir_all(self.target.as_path()).is_ok() {
             let destination = self.target.sub(file_name.as_ref());
-            fs::copy(source.as_path(), destination.as_path()).expect("failed to copy");
+            return fs::copy(source.as_path(), destination.as_path())
+                .map_err(|e| VacuumError::IoError(e))
+                .map(|_| ());
         }
+        Ok(())
     }
 
-    fn copy_files<S: AsRef<str>>(&self, pattern: S) {
+    fn copy_files<S: AsRef<str>>(&self, pattern: S) -> Result<(), VacuumError> {
         for path in self.source.search(pattern.as_ref()) {
             if path.is_dir() {
                 continue;
             }
-            let current = path.strip_prefix(self.source.as_path()).unwrap();
-            let target = self.target.sub(current.to_str().unwrap());
-            let dest_dir = target.parent().unwrap();
+            let current = path
+                .strip_prefix(self.source.as_path())
+                .expect("Failed to strip prefix");
+            let target = self
+                .target
+                .sub(current.to_str().expect("Failed to convert path to str"));
+            let dest_dir = target.parent().expect("Failed to get parent directory");
 
             if let Ok(_) = fs::create_dir_all(&dest_dir) {
-                fs::copy(path.as_path(), target.as_path()).expect("failed to copy");
+                return fs::copy(path.as_path(), target.as_path())
+                    .map(|_| ())
+                    .map_err(VacuumError::IoError);
             }
         }
+        Ok(())
     }
 
-    fn execute<S: AsRef<str>>(&self, command: S) {
+    fn execute<S: AsRef<str>>(&self, command: S) -> Result<(), VacuumError> {
         println!(
             "executing '{}' in {}",
             command.as_ref(),
             self.source.display()
         );
+        Ok(())
     }
 }
 

@@ -6,34 +6,40 @@ use crate::{Action, Folder};
 pub use context::Context;
 pub use file_system_executor::FileSystemExecutor;
 
+use crate::error::VacuumError;
 pub use ops::Ops;
 
-fn execute_actions<E>(executor: &E, actions: &[Action])
+fn execute_actions<E>(executor: &E, actions: &[Action]) -> Result<(), VacuumError>
 where
     E: Ops + Context,
 {
     for step in actions {
         match step {
-            Action::File(filename) => executor.copy_file(filename),
-            Action::Files(pattern) => executor.copy_files(pattern),
+            Action::File(filename) => executor.copy_file(filename)?,
+            Action::Files(pattern) => executor.copy_files(pattern)?,
             Action::Context(context, sub_actions) => {
-                let sub_contexts = match context {
-                    Folder::Home => vec![executor.home()],
-                    Folder::Config => vec![executor.config()],
-                    Folder::Custom(name) => vec![executor.sub(name)],
-                    Folder::Search(pattern) => executor.search(pattern),
-                };
+                let mut sub_contexts = Vec::new();
+                match context {
+                    Folder::Home => sub_contexts.push(executor.home()),
+                    Folder::Config => sub_contexts.push(executor.config()),
+                    Folder::Custom(name) => sub_contexts.push(executor.sub(name)),
+                    Folder::Search(pattern) => sub_contexts.extend(executor.search(pattern)),
+                }
 
                 for sub_context in sub_contexts {
                     //let sub_executor = executor.sub(sub_context);
-                    execute_actions(&sub_context, &sub_actions);
+                    execute_actions(&sub_context, &sub_actions)?;
                 }
             }
-            Action::Execute(command) => executor.execute(command),
-        }
+            Action::Execute(command) => executor.execute(command)?,
+        };
     }
+    Ok(())
 }
 
-pub fn execute<E: Ops + Context + Default>(executor: &E, app: &crate::App) {
-    execute_actions(executor, &app.actions);
+pub fn execute<E: Ops + Context + Default>(
+    executor: &E,
+    app: &crate::App,
+) -> Result<(), VacuumError> {
+    execute_actions(executor, &app.actions)
 }

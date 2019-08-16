@@ -13,10 +13,8 @@ fn main() -> Result<(), error::VacuumError> {
         .into_iter();
 
     for entry in dir {
-        if let Ok(ft) = entry.file_type() {
-            if !ft.is_file() {
-                continue;
-            }
+        if !entry.file_type()?.is_file() {
+            continue;
         }
 
         let content = fs::read_to_string(entry.path()).unwrap();
@@ -26,7 +24,7 @@ fn main() -> Result<(), error::VacuumError> {
         current_dir.push(&app.name);
         let executor = FileSystemExecutor::new(current_dir);
         println!("executing {}", app.name);
-        executors::execute(&executor, &app);
+        executors::execute(&executor, &app)?;
     }
     Ok(())
 }
