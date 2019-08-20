@@ -8,11 +8,11 @@ use crate::executors::FileSystemExecutor;
 use std::fs;
 
 fn main() -> Result<(), error::VacuumError> {
-    let dir = std::fs::read_dir("./apps/")?
-        .filter_map(Result::ok)
-        .into_iter();
+    let dir = std::fs::read_dir("./apps/")?.filter_map(Result::ok);
 
-    let output_folder = std::env::args().nth(1).unwrap_or("output".to_owned());
+    let output_folder = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "output".to_owned());
     let current_dir = std::env::current_dir()?;
     for entry in dir {
         if !entry.file_type()?.is_file() {

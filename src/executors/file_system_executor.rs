@@ -32,7 +32,7 @@ impl Ops for FileSystemExecutor<PathBuf> {
         if fs::create_dir_all(self.target.as_path()).is_ok() {
             let destination = self.target.sub(file_name.as_ref());
             return fs::copy(source.as_path(), destination.as_path())
-                .map_err(|e| VacuumError::IoError(e))
+                .map_err(VacuumError::IoError)
                 .map(|_| ());
         }
         Ok(())
@@ -51,7 +51,7 @@ impl Ops for FileSystemExecutor<PathBuf> {
                 .sub(current.to_str().expect("Failed to convert path to str"));
             let dest_dir = target.parent().expect("Failed to get parent directory");
 
-            if let Ok(_) = fs::create_dir_all(&dest_dir) {
+            if fs::create_dir_all(&dest_dir).is_ok() {
                 return fs::copy(path.as_path(), target.as_path())
                     .map(|_| ())
                     .map_err(VacuumError::IoError);
