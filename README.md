@@ -8,10 +8,41 @@ This repo contains highly **experimental** code before settling on a final desig
 
 ## How it works?
 
-Vacuum find what files to copy and where to find them by processing _.vacuum_ files. A vacuum file, in essence, is a mini DSL that describes where to look at to find application specific configuration files. You can have a look at the currently available .vacuum files [here](
-https://github.com/idursun/vacuum/tree/master/apps).
+Vacuum processes _.vacuum_ files.
 
-## How to try?
+A vacuum file, in essence, is a mini DSL that describes where to look at to find application specific configuration files.  
+
+Vacuum files are written per application. An example vacuum file for **WebStorm** is as follows:
+
+```
+app "WebStorm" {
+    home {
+        search ".WebStorm*" {
+            cd "config" {
+                cd "keymaps" {
+                    files "*.xml"
+                }
+                cd "options" {
+                    file "editor.xml"
+                }
+            }
+        }
+    }
+}
+```
+
+By processing this file, vacuum will:
+- Create a _WebStorm_ folder to store found configuration files
+- Change to the home folder
+- Search for directories matching the pattern `.WebStorm` and for each found directory:
+    - Change directory to config/keymaps
+        - Copy all files matching the pattern `*.xml`
+    - Change directory to config/options
+        - Copy file with the name `editor.xml`
+
+You can have a look at the currently available _.vacuum_ files [here](https://github.com/idursun/vacuum/tree/master/apps).
+
+## How to run?
 
 - Clone the repository
 - Run `cargo run -- ./myconfigs` to _vacuum_ configurations into `./myconfigs`
