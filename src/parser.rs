@@ -70,7 +70,7 @@ fn parse_app<'a>() -> Parser<'a, char, App> {
     app.map(|(name, actions)| App { name, actions })
 }
 
-pub fn app(input: String) -> Result<App, VacuumError> {
+pub fn parse(input: String) -> Result<App, VacuumError> {
     let input = input.chars().collect::<Vec<_>>();
     let result = parse_app().parse(&input);
     result.map_err(VacuumError::ParseError)

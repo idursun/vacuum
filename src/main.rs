@@ -20,7 +20,7 @@ fn main() -> Result<(), error::VacuumError> {
         }
 
         let content = fs::read_to_string(entry.path()).unwrap();
-        let app = parser::app(content)?;
+        let app = parser::parse(content)?;
         let mut app_dir = current_dir.clone();
         app_dir.push(output_folder.clone());
         app_dir.push(&app.name);
