@@ -1,0 +1,5 @@
+app "ideavim" {
+    home {
+        file ".ideavimrc"
+    }
+}
