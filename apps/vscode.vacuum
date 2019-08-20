@@ -10,5 +10,6 @@ app "VSCode" {
               file "settings.json"
           }
       }
+      execute "code --list-extensions" >> "extensions.txt"
   }
 }

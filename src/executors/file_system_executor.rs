@@ -60,12 +60,25 @@ impl Ops for FileSystemExecutor<PathBuf> {
         Ok(())
     }
 
-    fn execute<S: AsRef<str>>(&self, command: S) -> Result<(), VacuumError> {
-        println!(
-            "executing '{}' in {}",
-            command.as_ref(),
-            self.source.display()
-        );
+    fn execute<S: AsRef<str>>(
+        &self,
+        command: S,
+        file_name: &Option<String>,
+    ) -> Result<(), VacuumError> {
+        let command = command.as_ref();
+        println!("executing '{}' in {}", command, self.source.display());
+        let args = command.split_whitespace().collect::<Vec<_>>();
+        let result = std::process::Command::new(args[0])
+            .args(&args[1..])
+            .output()?;
+        let output = String::from_utf8(result.stdout).unwrap_or_default();
+
+        if let Some(file_name) = file_name {
+            let mut file_path = self.target.clone();
+            file_path.push(file_name);
+            std::fs::write(file_path.as_path(), output)?;
+        }
+
         Ok(())
     }
 }

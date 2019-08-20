@@ -22,7 +22,9 @@ fn command_files<'a>() -> Parser<'a, char, Action> {
 
 fn command_exec<'a>() -> Parser<'a, char, Action> {
     let command = tag("execute") | tag("exec");
-    (command * space() * string()).map(Action::Execute)
+    let command = command * space() * string() + (space() * tag(">>") * space() * string()).opt();
+
+    command.map(|(command, file_name)| Action::Execute(command, file_name))
 }
 
 fn context_home<'a>() -> Parser<'a, char, Action> {
@@ -96,7 +98,7 @@ mod tests {
                 Folder::Custom("WebStorm".into()),
                 vec![
                     Action::File("*.xml".into()),
-                    Action::Execute("ls files".into())
+                    Action::Execute("ls files".into(), None)
                 ]
             ))
         )
@@ -118,7 +120,7 @@ mod tests {
                 Folder::Search(".WebStorm*".into()),
                 vec![
                     Action::File("*.xml".into()),
-                    Action::Execute("ls files".into())
+                    Action::Execute("ls files".into(), None)
                 ]
             ))
         )
@@ -140,7 +142,7 @@ mod tests {
                 Folder::Home,
                 vec![
                     Action::File("*.xml".into()),
-                    Action::Execute("ls files".into())
+                    Action::Execute("ls files".into(), None)
                 ]
             ))
         )
@@ -160,7 +162,7 @@ mod tests {
             r,
             Ok(vec![
                 Action::File("*.xml".into()),
-                Action::Execute("ls files".into())
+                Action::Execute("ls files".into(), None)
             ])
         )
     }
@@ -183,7 +185,17 @@ mod tests {
     fn test_parse_execute() {
         let input = r#"exec "ls home""#.chars().collect::<Vec<_>>();
         let r = command_exec().parse(&input);
-        assert_eq!(r, Ok(Action::Execute("ls home".into())))
+        assert_eq!(r, Ok(Action::Execute("ls home".into(), None)))
+    }
+
+    #[test]
+    fn test_parse_execute_with_capture() {
+        let input = r#"exec "ls home" >> "output.txt""#.chars().collect::<Vec<_>>();
+        let r = command_exec().parse(&input);
+        assert_eq!(
+            r,
+            Ok(Action::Execute("ls home".into(), Some("output.txt".into())))
+        )
     }
 
     #[test]

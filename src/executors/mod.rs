@@ -31,7 +31,7 @@ where
                     execute_actions(&sub_context, &sub_actions)?;
                 }
             }
-            Action::Execute(command) => executor.execute(command)?,
+            Action::Execute(command, file_name) => executor.execute(command, file_name)?,
         };
     }
     Ok(())

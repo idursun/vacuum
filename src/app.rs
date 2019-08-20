@@ -17,5 +17,5 @@ pub enum Action {
     File(String),
     Files(String),
     Context(Folder, Vec<Action>),
-    Execute(String),
+    Execute(String, Option<String>),
 }
