@@ -3,11 +3,13 @@ app "VSCode" {
       cd "Code" {
           cd "User" {
               file "settings.json"
+              file "keybindings.json"
           }
       }
       cd "Code - OSS" {
           cd "User" {
               file "settings.json"
+              file "keybindings.json"
           }
       }
       execute "code --list-extensions" >> "extensions.txt"
