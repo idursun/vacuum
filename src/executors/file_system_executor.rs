@@ -67,7 +67,13 @@ impl Ops for FileSystemExecutor<PathBuf> {
     ) -> Result<(), VacuumError> {
         let command = command.as_ref();
         println!("executing '{}' in {}", command, self.source.display());
-        let args = command.split_whitespace().collect::<Vec<_>>();
+        let mut args = if cfg!(windows) {
+            vec!["cmd", "/c"]
+        } else {
+            vec![]
+        };
+        args.extend(command.split_whitespace().collect::<Vec<_>>());
+
         let result = std::process::Command::new(args[0])
             .args(&args[1..])
             .output()?;
