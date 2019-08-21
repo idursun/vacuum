@@ -1,5 +1,6 @@
 app "bash" {
     home {
         file ".bashrc"
+        file ".bash_aliases"
     }
 }
