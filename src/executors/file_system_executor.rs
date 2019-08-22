@@ -53,9 +53,7 @@ impl Ops for FileSystemExecutor<PathBuf> {
             let dest_dir = target.parent().expect("Failed to get parent directory");
 
             if fs::create_dir_all(&dest_dir).is_ok() {
-                return fs::copy(path.as_path(), target.as_path())
-                    .map(|_| ())
-                    .map_err(VacuumError::IoError);
+                let _ = fs::copy(path.as_path(), target.as_path());
             }
         }
         Ok(())
