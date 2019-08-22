@@ -24,13 +24,14 @@ where
 
 impl Ops for FileSystemExecutor<PathBuf> {
     fn copy_file<S: AsRef<str>>(&self, file_name: S) -> Result<(), VacuumError> {
-        let source = self.source.sub(file_name.as_ref());
+        let file_name = file_name.as_ref();
+        let source = self.source.sub(file_name);
         if !source.exists() {
             return Ok(());
         }
 
         if fs::create_dir_all(self.target.as_path()).is_ok() {
-            let destination = self.target.sub(file_name.as_ref());
+            let destination = self.target.sub(file_name);
             return fs::copy(source.as_path(), destination.as_path())
                 .map_err(VacuumError::IoError)
                 .map(|_| ());
@@ -105,14 +106,15 @@ impl Context for FileSystemExecutor<PathBuf> {
     }
 
     fn sub<S: AsRef<str>>(&self, sub: S) -> Self {
-        let source = self.source.sub(sub.as_ref());
-        let target = self.target.sub(sub.as_ref());
+        let sub = sub.as_ref();
+        let source = self.source.sub(sub);
+        let target = self.target.sub(sub);
 
         Self { source, target }
     }
 
     fn search(&self, pattern: &str) -> Vec<Self> {
-        let mut ret = vec![];
+        let mut ret = Vec::new();
         let sources = self.source.search(pattern);
         for source in sources {
             let remaining = source.strip_prefix(self.source.as_path()).unwrap();
