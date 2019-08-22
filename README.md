@@ -47,4 +47,4 @@ You can have a look at the currently available _.vacuum_ files [here](https://gi
 - Clone the repository
 - Run `cargo run -- ./myconfigs` to _vacuum_ configurations into `./myconfigs`
 
-[![asciicast](https://asciinema.org/a/262882.svg)](https://asciinema.org/a/262882)
+[![asciicast](https://asciinema.org/a/263745.svg)](https://asciinema.org/a/263745)
