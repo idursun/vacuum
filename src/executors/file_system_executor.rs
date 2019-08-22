@@ -1,28 +1,46 @@
 use super::context::Context;
 use super::ops::Ops;
 use crate::error::VacuumError;
+use colored::*;
 use std::fs;
 use std::path::PathBuf;
 
 #[derive(Clone)]
-pub struct FileSystemExecutor<C: Context> {
-    source: C,
-    target: C,
+struct Logger<'a> {
+    name: &'a str,
 }
 
-impl<C> FileSystemExecutor<C>
+impl<'a> Logger<'a> {
+    fn new(name: &'a str) -> Self {
+        Self { name }
+    }
+
+    fn print<S: AsRef<str>>(&self, line: S) {
+        println!("[{:<10}] {line}", self.name.green(), line = line.as_ref(),);
+    }
+}
+
+#[derive(Clone)]
+pub struct FileSystemExecutor<'a, C: Context> {
+    source: C,
+    target: C,
+    logger: Logger<'a>,
+}
+
+impl<'a, C> FileSystemExecutor<'a, C>
 where
     C: Context + Default,
 {
-    pub fn new(target_dir: C) -> Self {
+    pub fn new(target_dir: C, name: &'a str) -> Self {
         Self {
             source: C::default(),
             target: target_dir,
+            logger: Logger::new(name),
         }
     }
 }
 
-impl Ops for FileSystemExecutor<PathBuf> {
+impl<'a> Ops for FileSystemExecutor<'a, PathBuf> {
     fn copy_file<S: AsRef<str>>(&self, file_name: S) -> Result<(), VacuumError> {
         let file_name = file_name.as_ref();
         let source = self.source.sub(file_name);
@@ -32,6 +50,8 @@ impl Ops for FileSystemExecutor<PathBuf> {
 
         if fs::create_dir_all(self.target.as_path()).is_ok() {
             let destination = self.target.sub(file_name);
+            self.logger
+                .print(format!("{} {}", "Copy".blue(), source.display()));
             return fs::copy(source.as_path(), destination.as_path())
                 .map_err(VacuumError::IoError)
                 .map(|_| ());
@@ -53,7 +73,10 @@ impl Ops for FileSystemExecutor<PathBuf> {
             let dest_dir = target.parent().expect("Failed to get parent directory");
 
             if fs::create_dir_all(&dest_dir).is_ok() {
-                let _ = fs::copy(path.as_path(), target.as_path());
+                if fs::copy(path.as_path(), target.as_path()).is_ok() {
+                    self.logger
+                        .print(format!("{} {}", "Copy".blue(), path.display()));
+                }
             }
         }
         Ok(())
@@ -65,7 +88,6 @@ impl Ops for FileSystemExecutor<PathBuf> {
         file_name: &Option<String>,
     ) -> Result<(), VacuumError> {
         let command = command.as_ref();
-        println!("executing '{}' in {}", command, self.source.display());
         let mut args = if cfg!(windows) {
             vec!["cmd", "/c"]
         } else {
@@ -76,23 +98,33 @@ impl Ops for FileSystemExecutor<PathBuf> {
         let result = std::process::Command::new(args[0])
             .args(&args[1..])
             .output()?;
-        let output = String::from_utf8(result.stdout).unwrap_or_default();
 
-        if let Some(file_name) = file_name {
-            let mut file_path = self.target.clone();
-            file_path.push(file_name);
-            std::fs::write(file_path.as_path(), output)?;
+        if result.status.success() {
+            self.logger
+                .print(format!("{} {} ", "Execute".blue(), command));
+            let output = String::from_utf8(result.stdout).unwrap_or_default();
+
+            if let Some(file_name) = file_name {
+                let mut file_path = self.target.clone();
+                file_path.push(file_name);
+                std::fs::write(file_path.as_path(), output)?;
+            }
+
+            return Ok(());
         }
-
+        // return the error here
         Ok(())
     }
 }
 
-impl Context for FileSystemExecutor<PathBuf> {
+impl<'a> Context for FileSystemExecutor<'a, PathBuf> {
     fn home(&self) -> Self {
         Self {
             source: self.source.home(),
             target: self.target.sub("home"),
+            logger: Logger {
+                name: self.logger.name,
+            },
         }
     }
 
@@ -100,6 +132,9 @@ impl Context for FileSystemExecutor<PathBuf> {
         Self {
             source: self.source.config(),
             target: self.target.sub("config"),
+            logger: Logger {
+                name: self.logger.name,
+            },
         }
     }
 
@@ -108,7 +143,13 @@ impl Context for FileSystemExecutor<PathBuf> {
         let source = self.source.sub(sub);
         let target = self.target.sub(sub);
 
-        Self { source, target }
+        Self {
+            source,
+            target,
+            logger: Logger {
+                name: self.logger.name,
+            },
+        }
     }
 
     fn search(&self, pattern: &str) -> Vec<Self> {
@@ -117,17 +158,24 @@ impl Context for FileSystemExecutor<PathBuf> {
         for source in sources {
             let remaining = source.strip_prefix(self.source.as_path()).unwrap();
             let target = self.target.sub(remaining.to_str().unwrap());
-            ret.push(Self { source, target })
+            ret.push(Self {
+                source,
+                target,
+                logger: Logger {
+                    name: self.logger.name,
+                },
+            })
         }
         ret
     }
 }
 
-impl Default for FileSystemExecutor<PathBuf> {
+impl<'a> Default for FileSystemExecutor<'a, PathBuf> {
     fn default() -> Self {
         Self {
             source: PathBuf::default(),
             target: PathBuf::default(),
+            logger: Logger::new(""),
         }
     }
 }

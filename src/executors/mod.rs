@@ -2,11 +2,10 @@ mod context;
 mod file_system_executor;
 mod ops;
 
+use crate::error::VacuumError;
 use crate::{Action, Folder};
 pub use context::Context;
 pub use file_system_executor::FileSystemExecutor;
-
-use crate::error::VacuumError;
 pub use ops::Ops;
 
 fn execute_actions<E>(executor: &E, actions: &[Action]) -> Result<(), VacuumError>
@@ -15,7 +14,9 @@ where
 {
     for step in actions {
         match step {
-            Action::File(filename) => executor.copy_file(filename)?,
+            Action::File(filename) => {
+                executor.copy_file(filename)?;
+            }
             Action::Files(pattern) => executor.copy_files(pattern)?,
             Action::Context(context, sub_actions) => {
                 let mut sub_contexts = Vec::new();
@@ -27,12 +28,13 @@ where
                 }
 
                 for sub_context in sub_contexts {
-                    //let sub_executor = executor.sub(sub_context);
                     execute_actions(&sub_context, &sub_actions)?;
                 }
             }
-            Action::Execute(command, file_name) => executor.execute(command, file_name)?,
-        };
+            Action::Execute(command, file_name) => {
+                executor.execute(command, file_name)?;
+            }
+        }
     }
     Ok(())
 }
