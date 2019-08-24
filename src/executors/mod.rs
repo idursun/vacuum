@@ -14,9 +14,7 @@ where
 {
     for step in actions {
         match step {
-            Action::File(filename) => {
-                executor.copy_file(filename)?;
-            }
+            Action::File(filename) => executor.copy_file(filename)?,
             Action::Files(pattern) => executor.copy_files(pattern)?,
             Action::Context(context, sub_actions) => {
                 let mut sub_contexts = Vec::new();
@@ -31,9 +29,7 @@ where
                     execute_actions(&sub_context, &sub_actions)?;
                 }
             }
-            Action::Execute(command, file_name) => {
-                executor.execute(command, file_name)?;
-            }
+            Action::Execute(command, file_name) => executor.execute(command, file_name)?,
         }
     }
     Ok(())
