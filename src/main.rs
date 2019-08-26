@@ -3,7 +3,7 @@ mod error;
 mod executors;
 mod parser;
 use crate::app::{Action, App, Folder};
-use crate::executors::FileSystemExecutor;
+use crate::executors::{FileSystemContext, FileSystemExecutor};
 use std::fs;
 
 fn main() -> Result<(), error::VacuumError> {
@@ -23,8 +23,9 @@ fn main() -> Result<(), error::VacuumError> {
         let mut app_dir = current_dir.clone();
         app_dir.push(output_folder.clone());
         app_dir.push(&app.name);
-        let executor = FileSystemExecutor::new(app_dir, &app.name);
-        executors::execute(&executor, &app)?;
+        let context = FileSystemContext::new(app_dir);
+        let executor = FileSystemExecutor::new(&app.name);
+        executors::execute(&executor, &context, &app)?;
     }
     Ok(())
 }

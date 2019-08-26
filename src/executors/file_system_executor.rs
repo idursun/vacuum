@@ -21,35 +21,49 @@ impl<'a> Logger<'a> {
 }
 
 #[derive(Clone)]
-pub struct FileSystemExecutor<'a, C: Context> {
-    source: C,
-    target: C,
+pub struct FileSystemContext {
+    pub source: PathBuf,
+    pub target: PathBuf,
+}
+
+impl FileSystemContext {
+    pub fn new(target_dir: PathBuf) -> Self {
+        Self {
+            source: PathBuf::default(),
+            target: target_dir,
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct FileSystemExecutor<'a> {
     logger: Logger<'a>,
 }
 
-impl<'a, C> FileSystemExecutor<'a, C>
-where
-    C: Context + Default,
-{
-    pub fn new(target_dir: C, name: &'a str) -> Self {
+impl<'a> FileSystemExecutor<'a> {
+    pub fn new(name: &'a str) -> Self {
         Self {
-            source: C::default(),
-            target: target_dir,
             logger: Logger::new(name),
         }
     }
 }
 
-impl<'a> Ops for FileSystemExecutor<'a, PathBuf> {
-    fn copy_file<S: AsRef<str>>(&self, file_name: S) -> Result<(), VacuumError> {
+impl<'a> Ops for FileSystemExecutor<'a> {
+    type Context = FileSystemContext;
+
+    fn copy_file<S: AsRef<str>>(
+        &self,
+        ctx: &Self::Context,
+        file_name: S,
+    ) -> Result<(), VacuumError> {
         let file_name = file_name.as_ref();
-        let source = self.source.sub(file_name);
+        let source = ctx.source.sub(file_name);
         if !source.exists() {
             return Ok(());
         }
 
-        if fs::create_dir_all(self.target.as_path()).is_ok() {
-            let destination = self.target.sub(file_name);
+        if fs::create_dir_all(ctx.target.as_path()).is_ok() {
+            let destination = ctx.target.sub(file_name);
             self.logger
                 .print(format!("{} {}", "Copy".blue(), source.display()));
             return fs::copy(source.as_path(), destination.as_path())
@@ -59,15 +73,19 @@ impl<'a> Ops for FileSystemExecutor<'a, PathBuf> {
         Ok(())
     }
 
-    fn copy_files<S: AsRef<str>>(&self, pattern: S) -> Result<(), VacuumError> {
-        for path in self.source.search(pattern.as_ref()) {
+    fn copy_files<S: AsRef<str>>(
+        &self,
+        ctx: &Self::Context,
+        pattern: S,
+    ) -> Result<(), VacuumError> {
+        for path in ctx.source.search(pattern.as_ref()) {
             if path.is_dir() {
                 continue;
             }
             let current = path
-                .strip_prefix(self.source.as_path())
+                .strip_prefix(ctx.source.as_path())
                 .expect("Failed to strip prefix");
-            let target = self
+            let target = ctx
                 .target
                 .sub(current.to_str().expect("Failed to convert path to str"));
             let dest_dir = target.parent().expect("Failed to get parent directory");
@@ -84,6 +102,7 @@ impl<'a> Ops for FileSystemExecutor<'a, PathBuf> {
 
     fn execute<S: AsRef<str>>(
         &self,
+        ctx: &Self::Context,
         command: S,
         file_name: &Option<String>,
     ) -> Result<(), VacuumError> {
@@ -105,7 +124,7 @@ impl<'a> Ops for FileSystemExecutor<'a, PathBuf> {
             let output = String::from_utf8(result.stdout).unwrap_or_default();
 
             if let Some(file_name) = file_name {
-                let mut file_path = self.target.clone();
+                let mut file_path = ctx.target.clone();
                 file_path.push(file_name);
                 std::fs::write(file_path.as_path(), output)?;
             }
@@ -117,14 +136,11 @@ impl<'a> Ops for FileSystemExecutor<'a, PathBuf> {
     }
 }
 
-impl<'a> Context for FileSystemExecutor<'a, PathBuf> {
+impl Context for FileSystemContext {
     fn home(&self) -> Self {
         Self {
             source: self.source.home(),
             target: self.target.sub("home"),
-            logger: Logger {
-                name: self.logger.name,
-            },
         }
     }
 
@@ -132,9 +148,6 @@ impl<'a> Context for FileSystemExecutor<'a, PathBuf> {
         Self {
             source: self.source.config(),
             target: self.target.sub("config"),
-            logger: Logger {
-                name: self.logger.name,
-            },
         }
     }
 
@@ -143,13 +156,7 @@ impl<'a> Context for FileSystemExecutor<'a, PathBuf> {
         let source = self.source.sub(sub);
         let target = self.target.sub(sub);
 
-        Self {
-            source,
-            target,
-            logger: Logger {
-                name: self.logger.name,
-            },
-        }
+        Self { source, target }
     }
 
     fn search(&self, pattern: &str) -> Vec<Self> {
@@ -158,24 +165,8 @@ impl<'a> Context for FileSystemExecutor<'a, PathBuf> {
         for source in sources {
             let remaining = source.strip_prefix(self.source.as_path()).unwrap();
             let target = self.target.sub(remaining.to_str().unwrap());
-            ret.push(Self {
-                source,
-                target,
-                logger: Logger {
-                    name: self.logger.name,
-                },
-            })
+            ret.push(Self { source, target })
         }
         ret
-    }
-}
-
-impl<'a> Default for FileSystemExecutor<'a, PathBuf> {
-    fn default() -> Self {
-        Self {
-            source: PathBuf::default(),
-            target: PathBuf::default(),
-            logger: Logger::new(""),
-        }
     }
 }
