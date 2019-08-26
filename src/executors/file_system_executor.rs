@@ -56,17 +56,16 @@ impl<'a> Ops for FileSystemExecutor<'a> {
         ctx: &Self::Context,
         file_name: S,
     ) -> Result<(), VacuumError> {
-        let file_name = file_name.as_ref();
-        let source = ctx.source.sub(file_name);
+        let FileSystemContext { source, target } = ctx.sub(file_name.as_ref());
         if !source.exists() {
             return Ok(());
         }
 
-        if fs::create_dir_all(ctx.target.as_path()).is_ok() {
-            let destination = ctx.target.sub(file_name);
+        let parent = target.parent().unwrap();
+        if fs::create_dir_all(parent).is_ok() {
             self.logger
                 .print(format!("{} {}", "Copy".blue(), source.display()));
-            return fs::copy(source.as_path(), destination.as_path())
+            return fs::copy(source.as_path(), target.as_path())
                 .map_err(VacuumError::IoError)
                 .map(|_| ());
         }
@@ -78,22 +77,16 @@ impl<'a> Ops for FileSystemExecutor<'a> {
         ctx: &Self::Context,
         pattern: S,
     ) -> Result<(), VacuumError> {
-        for path in ctx.source.search(pattern.as_ref()) {
-            if path.is_dir() {
+        for FileSystemContext { source, target } in ctx.search(pattern.as_ref()) {
+            if source.is_dir() {
                 continue;
             }
-            let current = path
-                .strip_prefix(ctx.source.as_path())
-                .expect("Failed to strip prefix");
-            let target = ctx
-                .target
-                .sub(current.to_str().expect("Failed to convert path to str"));
             let dest_dir = target.parent().expect("Failed to get parent directory");
 
             if fs::create_dir_all(&dest_dir).is_ok() {
-                if fs::copy(path.as_path(), target.as_path()).is_ok() {
+                if fs::copy(source.as_path(), target.as_path()).is_ok() {
                     self.logger
-                        .print(format!("{} {}", "Copy".blue(), path.display()));
+                        .print(format!("{} {}", "Copy".blue(), source.display()));
                 }
             }
         }
