@@ -3,7 +3,8 @@ use super::ops::Ops;
 use crate::error::VacuumError;
 use colored::*;
 use std::fs;
-use std::path::PathBuf;
+use std::marker::PhantomData;
+use std::path::{Path, PathBuf};
 
 #[derive(Clone)]
 struct Logger<'a> {
@@ -36,27 +37,32 @@ impl FileSystemContext {
 }
 
 #[derive(Clone)]
-pub struct FileSystemExecutor<'a> {
+pub struct FileSystemExecutor<'a, C> {
     logger: Logger<'a>,
+    _phantom: PhantomData<C>,
 }
 
-impl<'a> FileSystemExecutor<'a> {
+impl<'a, C> FileSystemExecutor<'a, C> {
     pub fn new(name: &'a str) -> Self {
         Self {
             logger: Logger::new(name),
+            _phantom: Default::default(),
         }
     }
 }
 
-impl<'a> Ops for FileSystemExecutor<'a> {
-    type Context = FileSystemContext;
+impl<'a, C> Ops for FileSystemExecutor<'a, C>
+where
+    C: Context<Current = (PathBuf, PathBuf)>,
+{
+    type Context = C;
 
     fn copy_file<S: AsRef<str>>(
         &self,
         ctx: &Self::Context,
         file_name: S,
     ) -> Result<(), VacuumError> {
-        let FileSystemContext { source, target } = ctx.sub(file_name.as_ref());
+        let (source, target) = ctx.sub(file_name.as_ref()).current();
         if !source.exists() {
             return Ok(());
         }
@@ -77,7 +83,8 @@ impl<'a> Ops for FileSystemExecutor<'a> {
         ctx: &Self::Context,
         pattern: S,
     ) -> Result<(), VacuumError> {
-        for FileSystemContext { source, target } in ctx.search(pattern.as_ref()) {
+        for found in ctx.search(pattern.as_ref()) {
+            let (source, target) = found.current();
             if source.is_dir() {
                 continue;
             }
@@ -117,7 +124,8 @@ impl<'a> Ops for FileSystemExecutor<'a> {
             let output = String::from_utf8(result.stdout).unwrap_or_default();
 
             if let Some(file_name) = file_name {
-                let mut file_path = ctx.target.clone();
+                let (_, target) = ctx.current();
+                let mut file_path = target.clone();
                 file_path.push(file_name);
                 std::fs::write(file_path.as_path(), output)?;
             }
@@ -130,6 +138,12 @@ impl<'a> Ops for FileSystemExecutor<'a> {
 }
 
 impl Context for FileSystemContext {
+    type Current = (PathBuf, PathBuf);
+    fn current(&self) -> Self::Current {
+        let s = self.source.clone();
+        let t = self.target.clone();
+        (s, t)
+    }
     fn home(&self) -> Self {
         Self {
             source: self.source.home(),
