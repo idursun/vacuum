@@ -1,11 +1,14 @@
 mod context;
+mod file_system_context;
 mod file_system_executor;
+mod logger;
 mod ops;
 
 use crate::error::VacuumError;
 use crate::{Action, Folder};
 pub use context::Context;
-pub use file_system_executor::{FileSystemContext, FileSystemExecutor};
+pub use file_system_context::FileSystemContext;
+pub use file_system_executor::FileSystemExecutor;
 pub use ops::Ops;
 
 fn execute_actions<C>(
