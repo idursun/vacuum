@@ -2,12 +2,12 @@ use super::context::Context;
 use std::path::PathBuf;
 
 #[derive(Clone)]
-pub struct FileSystemContext {
+pub struct StoreContext {
     pub source: PathBuf,
     pub target: PathBuf,
 }
 
-impl FileSystemContext {
+impl StoreContext {
     pub fn new(target_dir: PathBuf) -> Self {
         Self {
             source: PathBuf::default(),
@@ -16,7 +16,7 @@ impl FileSystemContext {
     }
 }
 
-impl Context for FileSystemContext {
+impl Context for StoreContext {
     type Current = (PathBuf, PathBuf);
     fn current(&self) -> Self::Current {
         let s = self.source.clone();

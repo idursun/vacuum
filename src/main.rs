@@ -4,7 +4,7 @@ mod executors;
 mod parser;
 use crate::app::{Action, App, Folder};
 use crate::error::VacuumError;
-use crate::executors::{FileSystemContext, FileSystemExecutor};
+use crate::executors::{FileSystemExecutor, StoreContext};
 use std::fs;
 
 fn parse_vacuum_files() -> Result<Vec<App>, VacuumError> {
@@ -32,7 +32,7 @@ fn main() -> Result<(), error::VacuumError> {
         let mut app_dir = current_dir.clone();
         app_dir.push(output_folder.clone());
         app_dir.push(&app.name);
-        let context = FileSystemContext::new(app_dir);
+        let context = StoreContext::new(app_dir);
         let executor = FileSystemExecutor::new(&app.name);
         executors::execute(&executor, &context, &app)?;
     }
