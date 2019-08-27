@@ -51,3 +51,13 @@ fn main() -> Result<(), error::VacuumError> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn all_vacuum_files_parsed_without_errors() {
+        assert!(super::parse_vacuum_files().is_ok());
+    }
+
+}
