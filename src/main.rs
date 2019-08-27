@@ -4,7 +4,7 @@ mod executors;
 mod parser;
 use crate::app::{Action, App, Folder};
 use crate::error::VacuumError;
-use crate::executors::{FileSystemExecutor, StoreContext};
+use crate::executors::{FileSystemExecutor, RestoreContext, StoreContext};
 use std::fs;
 
 fn parse_vacuum_files() -> Result<Vec<App>, VacuumError> {
@@ -23,18 +23,31 @@ fn parse_vacuum_files() -> Result<Vec<App>, VacuumError> {
 }
 
 fn main() -> Result<(), error::VacuumError> {
-    let output_folder = std::env::args()
+    let command = std::env::args()
         .nth(1)
+        .unwrap_or_else(|| "store".to_owned());
+    let output_folder = std::env::args()
+        .nth(2)
         .unwrap_or_else(|| "output".to_owned());
     let current_dir = std::env::current_dir()?;
+
     let apps = parse_vacuum_files()?;
     for app in apps {
         let mut app_dir = current_dir.clone();
         app_dir.push(output_folder.clone());
         app_dir.push(&app.name);
-        let context = StoreContext::new(app_dir);
-        let executor = FileSystemExecutor::new(&app.name);
-        executors::execute(&executor, &context, &app)?;
+
+        match command.as_ref() {
+            "store" => {
+                let executor = FileSystemExecutor::new(&app.name);
+                executors::execute(&executor, &StoreContext::new(app_dir), &app)?;
+            }
+            "restore" => {
+                let executor = FileSystemExecutor::new(&app.name);
+                executors::execute(&executor, &RestoreContext::new(app_dir), &app)?;
+            }
+            c @ _ => panic!("unknown command {}", c),
+        };
     }
     Ok(())
 }

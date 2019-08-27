@@ -2,21 +2,21 @@ use super::context::Context;
 use std::path::PathBuf;
 
 #[derive(Clone)]
-pub struct StoreContext {
+pub struct RestoreContext {
     pub source: PathBuf,
     pub target: PathBuf,
 }
 
-impl StoreContext {
-    pub fn new(target_dir: PathBuf) -> Self {
+impl RestoreContext {
+    pub fn new(source_dir: PathBuf) -> Self {
         Self {
-            source: PathBuf::default(),
-            target: target_dir,
+            source: source_dir,
+            target: PathBuf::default(),
         }
     }
 }
 
-impl Context for StoreContext {
+impl Context for RestoreContext {
     type Current = (PathBuf, PathBuf);
 
     fn current(&self) -> Self::Current {
@@ -27,15 +27,15 @@ impl Context for StoreContext {
 
     fn home(&self) -> Self {
         Self {
-            source: self.source.home(),
-            target: self.target.sub("home"),
+            source: self.source.sub("home"),
+            target: self.target.home(),
         }
     }
 
     fn config(&self) -> Self {
         Self {
-            source: self.source.config(),
-            target: self.target.sub("config"),
+            source: self.source.sub("config"),
+            target: self.target.config(),
         }
     }
 

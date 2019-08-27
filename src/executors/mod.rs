@@ -2,6 +2,7 @@ mod context;
 mod file_system_executor;
 mod logger;
 mod ops;
+mod restore_context;
 mod store_context;
 
 use crate::error::VacuumError;
@@ -9,6 +10,7 @@ use crate::{Action, Folder};
 pub use context::Context;
 pub use file_system_executor::FileSystemExecutor;
 pub use ops::Ops;
+pub use restore_context::RestoreContext;
 pub use store_context::StoreContext;
 
 fn execute_actions<C>(
