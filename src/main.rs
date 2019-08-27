@@ -1,10 +1,12 @@
 mod app;
+mod context;
 mod error;
 mod executors;
 mod parser;
 use crate::app::{Action, App, Folder};
+use crate::context::{RestoreContext, StoreContext};
 use crate::error::VacuumError;
-use crate::executors::{FileSystemExecutor, RestoreContext, StoreContext};
+use crate::executors::FileSystemExecutor;
 use std::fs;
 
 fn parse_vacuum_files() -> Result<Vec<App>, VacuumError> {
