@@ -25,12 +25,17 @@ fn parse_vacuum_files() -> Result<Vec<App>, VacuumError> {
 }
 
 fn main() -> Result<(), error::VacuumError> {
-    let command = std::env::args()
-        .nth(1)
-        .unwrap_or_else(|| "store".to_owned());
-    let output_folder = std::env::args()
-        .nth(2)
-        .unwrap_or_else(|| "output".to_owned());
+    let mut args = std::env::args();
+    if args.len() < 2 {
+        println!("Usage: vacuum [command] <folder>");
+        println!(" commands:");
+        println!(" store   : Store configurations files into folder");
+        println!(" restore : Restore configurations files from folder");
+        return Ok(());
+    }
+
+    let command = args.nth(1).unwrap_or_else(|| "store".to_owned());
+    let output_folder = args.nth(2).unwrap_or_else(|| "output".to_owned());
     let current_dir = std::env::current_dir()?;
 
     let apps = parse_vacuum_files()?;
