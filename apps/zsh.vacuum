@@ -1,5 +1,6 @@
 app "zsh" {
     home {
         file ".zshrc"
+        file ".zprofile"
     }
 }
