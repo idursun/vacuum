@@ -1,0 +1,8 @@
+app "i3" {
+    config {
+        cd "i3" {
+            file "config"
+        }
+    }
+}
+

@@ -1,0 +1,8 @@
+app "polybar" {
+    config {
+        cd "polybar" {
+            file "config"
+        }
+    }
+}
+
