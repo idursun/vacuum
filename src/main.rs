@@ -34,8 +34,9 @@ fn main() -> Result<(), error::VacuumError> {
         return Ok(());
     }
 
-    let command = args.nth(1).unwrap_or_else(|| "store".to_owned());
-    let output_folder = args.nth(2).unwrap_or_else(|| "output".to_owned());
+    let _ = args.nth(0);
+    let command = args.nth(0).unwrap_or_else(|| "store".to_owned());
+    let output_folder = args.nth(0).unwrap_or_else(|| "output".to_owned());
     let current_dir = std::env::current_dir()?;
 
     let apps = parse_vacuum_files()?;
