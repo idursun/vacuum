@@ -1,0 +1,6 @@
+app "X11" {
+    home {
+        file ".Xresources"
+    }
+}
+
