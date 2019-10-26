@@ -1,0 +1,6 @@
+app "compton" {
+    config {
+        file "compton.conf"
+    }
+}
+
