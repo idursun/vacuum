@@ -45,6 +45,7 @@ You can have a look at the currently available _.vacuum_ files [here](https://gi
 ## How to run?
 
 - Clone the repository
-- Run `cargo run -- ./myconfigs` to _vacuum_ configurations into `./myconfigs`
+- Run `cargo run -- store ./myconfigs` to _vacuum_ configurations into `./myconfigs`
+- Run `cargo run -- restore ./myconfig` to restore your configurations from `./myconfig`
 
 [![asciicast](https://asciinema.org/a/263745.svg)](https://asciinema.org/a/263745)
