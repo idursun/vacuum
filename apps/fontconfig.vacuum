@@ -1,0 +1,7 @@
+app "fontconfig" {
+    config {
+        cd "fontconfig" {
+            files "*.conf"
+        }
+    }
+}
