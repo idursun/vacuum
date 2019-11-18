@@ -1,0 +1,7 @@
+app "termite" {
+    config {
+        cd "termite" {
+            file "config"
+        }
+    }
+}
