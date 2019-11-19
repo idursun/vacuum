@@ -42,6 +42,8 @@ By processing this file, vacuum will:
 
 You can have a look at the currently available _.vacuum_ files [here](https://github.com/idursun/vacuum/tree/master/apps).
 
+An example repository with collected configs is at [here](https://github.com/idursun/configs)
+
 ## How to run?
 
 - Clone the repository
