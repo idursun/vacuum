@@ -1,0 +1,5 @@
+app "starship-rs" {
+    config {
+        file "starship.toml"
+    }
+}
