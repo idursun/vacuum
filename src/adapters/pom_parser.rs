@@ -1,4 +1,4 @@
-use crate::app::{Action, App, Folder};
+use crate::domain::{Action, App, Folder};
 use crate::error::VacuumError;
 use pom::parser::*;
 use std::iter::FromIterator;

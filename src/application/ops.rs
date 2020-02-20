@@ -1,5 +1,5 @@
+use crate::application::context::Context;
 use crate::error::VacuumError;
-use crate::executors::Context;
 
 pub trait Ops {
     type Context: Context;

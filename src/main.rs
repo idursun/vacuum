@@ -1,10 +1,13 @@
-mod app;
-mod context;
-mod error;
-mod executors;
-mod parser;
-use crate::app::{Action, App, Folder};
+mod adapters;
+mod application;
+mod domain;
+
+use crate::adapters::file_system_executor::FileSystemExecutor;
+use crate::adapters::restore_context::RestoreContext;
+use crate::adapters::store_context::StoreContext;
+use crate::application::error;
 use crate::context::{RestoreContext, StoreContext};
+use crate::domain::{Action, App, Folder};
 use crate::error::VacuumError;
 use crate::executors::FileSystemExecutor;
 use std::fs;
@@ -67,5 +70,4 @@ mod tests {
     fn all_vacuum_files_parsed_without_errors() {
         assert!(super::parse_vacuum_files().is_ok());
     }
-
 }

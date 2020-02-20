@@ -1,12 +1,7 @@
-mod file_system_executor;
-mod logger;
-mod ops;
-
-use crate::context::Context;
-use crate::error::VacuumError;
-use crate::{Action, Folder};
-pub use file_system_executor::FileSystemExecutor;
-pub use ops::Ops;
+use crate::application::context::Context;
+use crate::application::error::VacuumError;
+use crate::application::ops::Ops;
+use crate::domain::{Action, Folder};
 
 fn execute_actions<C>(
     executor: &impl Ops<Context = C>,
