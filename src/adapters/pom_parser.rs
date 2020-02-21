@@ -1,7 +1,24 @@
+use crate::application::error::VacuumError;
+use crate::application::parser::VacuumFileParser;
 use crate::domain::{Action, App, Folder};
-use crate::error::VacuumError;
 use pom::parser::*;
 use std::iter::FromIterator;
+
+pub struct PomParser;
+
+impl PomParser {
+    pub fn new() -> Self {
+        PomParser {}
+    }
+}
+
+impl VacuumFileParser for PomParser {
+    fn parse(input: String) -> Result<App, VacuumError> {
+        let input = input.chars().collect::<Vec<_>>();
+        let result = parse_app().parse(&input);
+        result.map_err(VacuumError::ParseError)
+    }
+}
 
 fn space<'a>() -> Parser<'a, char, ()> {
     one_of(" \t\r\n").repeat(0..).discard()
@@ -72,16 +89,11 @@ fn parse_app<'a>() -> Parser<'a, char, App> {
     app.map(|(name, actions)| App { name, actions })
 }
 
-pub fn parse(input: String) -> Result<App, VacuumError> {
-    let input = input.chars().collect::<Vec<_>>();
-    let result = parse_app().parse(&input);
-    result.map_err(VacuumError::ParseError)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::app::Action;
+    use crate::domain::Action;
+
     #[test]
     fn test_parse_context_custom() {
         let input = r#"cd "WebStorm" { 

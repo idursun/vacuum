@@ -1,9 +1,7 @@
 use super::logger::Logger;
-use super::ops::Ops;
 use crate::application::context::Context;
+use crate::application::error::VacuumError;
 use crate::application::ops::Ops;
-use crate::context::Context;
-use crate::error::VacuumError;
 use colored::*;
 use std::fs;
 use std::marker::PhantomData;

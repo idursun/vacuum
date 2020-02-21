@@ -2,14 +2,10 @@ mod adapters;
 mod application;
 mod domain;
 
-use crate::adapters::file_system_executor::FileSystemExecutor;
-use crate::adapters::restore_context::RestoreContext;
-use crate::adapters::store_context::StoreContext;
-use crate::application::error;
-use crate::context::{RestoreContext, StoreContext};
-use crate::domain::{Action, App, Folder};
-use crate::error::VacuumError;
-use crate::executors::FileSystemExecutor;
+use crate::adapters::PomParser;
+use crate::application::error::VacuumError;
+use crate::domain::App;
+use application::parser::VacuumFileParser;
 use std::fs;
 
 fn parse_vacuum_files() -> Result<Vec<App>, VacuumError> {
@@ -21,13 +17,13 @@ fn parse_vacuum_files() -> Result<Vec<App>, VacuumError> {
         }
 
         let content = fs::read_to_string(entry.path()).unwrap();
-        let app = parser::parse(content)?;
+        let app = PomParser::parse(content)?;
         apps.push(app);
     }
     Ok(apps)
 }
 
-fn main() -> Result<(), error::VacuumError> {
+fn main() -> Result<(), VacuumError> {
     let mut args = std::env::args();
     if args.len() < 2 {
         println!("Usage: vacuum [command] <folder>");
@@ -50,12 +46,14 @@ fn main() -> Result<(), error::VacuumError> {
 
         match command.as_ref() {
             "store" => {
-                let executor = FileSystemExecutor::new(&app.name);
-                executors::execute(&executor, &StoreContext::new(app_dir), &app)?;
+                //TODO implement using a usecase
+                // let executor = FileSystemExecutor::new(&app.name);
+                // executors::execute(&executor, &StoreContext::new(app_dir), &app)?;
             }
             "restore" => {
-                let executor = FileSystemExecutor::new(&app.name);
-                executors::execute(&executor, &RestoreContext::new(app_dir), &app)?;
+                //TODO implement using a usecase
+                // let executor = FileSystemExecutor::new(&app.name);
+                // executors::execute(&executor, &RestoreContext::new(app_dir), &app)?;
             }
             c @ _ => panic!("unknown command {}", c),
         };

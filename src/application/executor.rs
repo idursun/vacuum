@@ -1,7 +1,7 @@
 use crate::application::context::Context;
 use crate::application::error::VacuumError;
 use crate::application::ops::Ops;
-use crate::domain::{Action, Folder};
+use crate::domain::{Action, App, Folder};
 
 fn execute_actions<C>(
     executor: &impl Ops<Context = C>,
@@ -34,11 +34,7 @@ where
     Ok(())
 }
 
-pub fn execute<C>(
-    executor: &impl Ops<Context = C>,
-    ctx: &C,
-    app: &crate::App,
-) -> Result<(), VacuumError>
+pub fn execute<C>(executor: &impl Ops<Context = C>, ctx: &C, app: &App) -> Result<(), VacuumError>
 where
     C: Context,
 {
