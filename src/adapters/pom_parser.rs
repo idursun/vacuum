@@ -6,12 +6,6 @@ use std::iter::FromIterator;
 
 pub struct PomParser;
 
-impl PomParser {
-    pub fn new() -> Self {
-        PomParser {}
-    }
-}
-
 impl VacuumFileParser for PomParser {
     fn parse(input: String) -> Result<App, VacuumError> {
         let input = input.chars().collect::<Vec<_>>();
