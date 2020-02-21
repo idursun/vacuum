@@ -2,8 +2,11 @@ mod adapters;
 mod application;
 mod domain;
 
+use crate::adapters::context::{restore_context::RestoreContext, store_context::StoreContext};
+use crate::adapters::executor::FileSystemExecutor;
 use crate::adapters::PomParser;
 use crate::application::error::VacuumError;
+use crate::application::executor;
 use crate::domain::App;
 use application::parser::VacuumFileParser;
 use std::fs;
@@ -47,13 +50,13 @@ fn main() -> Result<(), VacuumError> {
         match command.as_ref() {
             "store" => {
                 //TODO implement using a usecase
-                // let executor = FileSystemExecutor::new(&app.name);
-                // executors::execute(&executor, &StoreContext::new(app_dir), &app)?;
+                let executor = FileSystemExecutor::new(&app.name);
+                executor::execute(&executor, &StoreContext::new(app_dir), &app)?;
             }
             "restore" => {
                 //TODO implement using a usecase
-                // let executor = FileSystemExecutor::new(&app.name);
-                // executors::execute(&executor, &RestoreContext::new(app_dir), &app)?;
+                let executor = FileSystemExecutor::new(&app.name);
+                executor::execute(&executor, &RestoreContext::new(app_dir), &app)?;
             }
             c @ _ => panic!("unknown command {}", c),
         };
