@@ -1,7 +1,7 @@
 use super::logger::Logger;
 use crate::application::context::Context;
 use crate::application::error::VacuumError;
-use crate::application::ops::Ops;
+use crate::application::handler::Handler;
 use colored::*;
 use std::fs;
 use std::marker::PhantomData;
@@ -22,13 +22,13 @@ impl<'a, C> FileSystemExecutor<'a, C> {
     }
 }
 
-impl<'a, C> Ops for FileSystemExecutor<'a, C>
+impl<'a, C> Handler for FileSystemExecutor<'a, C>
 where
     C: Context<Current = (PathBuf, PathBuf)>,
 {
     type Context = C;
 
-    fn copy_file<S: AsRef<str>>(
+    fn handle_file<S: AsRef<str>>(
         &self,
         ctx: &Self::Context,
         file_name: S,
@@ -49,7 +49,7 @@ where
         Ok(())
     }
 
-    fn copy_files<S: AsRef<str>>(
+    fn handle_files<S: AsRef<str>>(
         &self,
         ctx: &Self::Context,
         pattern: S,
@@ -71,7 +71,7 @@ where
         Ok(())
     }
 
-    fn execute<S: AsRef<str>>(
+    fn handle_execute<S: AsRef<str>>(
         &self,
         ctx: &Self::Context,
         command: S,

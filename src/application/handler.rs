@@ -1,16 +1,19 @@
 use crate::application::context::Context;
 use crate::application::error::VacuumError;
 
-pub trait Ops {
+pub trait Handler {
     type Context: Context;
-    fn copy_file<S: AsRef<str>>(
+    fn handle_file<S: AsRef<str>>(
         &self,
         ctx: &Self::Context,
         file_name: S,
     ) -> Result<(), VacuumError>;
-    fn copy_files<S: AsRef<str>>(&self, ctx: &Self::Context, pattern: S)
-        -> Result<(), VacuumError>;
-    fn execute<S: AsRef<str>>(
+    fn handle_files<S: AsRef<str>>(
+        &self,
+        ctx: &Self::Context,
+        pattern: S,
+    ) -> Result<(), VacuumError>;
+    fn handle_execute<S: AsRef<str>>(
         &self,
         ctx: &Self::Context,
         command: S,

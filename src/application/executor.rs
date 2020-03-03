@@ -1,10 +1,10 @@
 use crate::application::context::Context;
 use crate::application::error::VacuumError;
-use crate::application::ops::Ops;
+use crate::application::handler::Handler;
 use crate::domain::{Action, App, Folder};
 
-fn execute_actions<C>(
-    executor: &impl Ops<Context = C>,
+fn handle_actions<C>(
+    handler: &impl Handler<Context = C>,
     ctx: &C,
     actions: &[Action],
 ) -> Result<(), VacuumError>
@@ -13,8 +13,8 @@ where
 {
     for step in actions {
         match step {
-            Action::File(filename) => executor.copy_file(ctx, filename)?,
-            Action::Files(pattern) => executor.copy_files(ctx, pattern)?,
+            Action::File(filename) => handler.handle_file(ctx, filename)?,
+            Action::Files(pattern) => handler.handle_files(ctx, pattern)?,
             Action::Context(context, sub_actions) => {
                 let mut sub_contexts = Vec::new();
                 match context {
@@ -25,18 +25,24 @@ where
                 }
 
                 for sub_context in sub_contexts {
-                    execute_actions(executor, &sub_context, &sub_actions)?;
+                    handle_actions(handler, &sub_context, &sub_actions)?;
                 }
             }
-            Action::Execute(command, file_name) => executor.execute(ctx, command, file_name)?,
+            Action::Execute(command, file_name) => {
+                handler.handle_execute(ctx, command, file_name)?
+            }
         }
     }
     Ok(())
 }
 
-pub fn execute<C>(executor: &impl Ops<Context = C>, ctx: &C, app: &App) -> Result<(), VacuumError>
+pub fn execute<C>(
+    handler: &impl Handler<Context = C>,
+    ctx: &C,
+    app: &App,
+) -> Result<(), VacuumError>
 where
     C: Context,
 {
-    execute_actions(executor, ctx, &app.actions)
+    handle_actions(handler, ctx, &app.actions)
 }
