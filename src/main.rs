@@ -2,7 +2,7 @@ mod adapters;
 mod application;
 mod domain;
 
-use crate::adapters::PomParser;
+use crate::adapters::{DepsUseCase, PomParser};
 use crate::adapters::{RestoreUseCase, StoreUseCase};
 use crate::application::error::VacuumError;
 use crate::application::usecase::UseCase;
@@ -49,6 +49,7 @@ fn main() -> Result<(), VacuumError> {
         match command.as_ref() {
             "store" => StoreUseCase::new(app_dir).run(&app)?,
             "restore" => RestoreUseCase::new(app_dir).run(&app)?,
+            "deps" => DepsUseCase::new(app_dir).run(&app)?,
             c @ _ => panic!("unknown command {}", c),
         };
     }
