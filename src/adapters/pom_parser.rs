@@ -1,6 +1,6 @@
 use crate::application::error::VacuumError;
 use crate::application::parser::VacuumFileParser;
-use crate::domain::{Action, App, Folder};
+use crate::domain::{Action, App, DependencyCheck, Folder};
 use pom::parser::*;
 use std::iter::FromIterator;
 
@@ -18,13 +18,43 @@ fn space<'a>() -> Parser<'a, char, ()> {
     one_of(" \t\r\n").repeat(0..).discard()
 }
 
+fn ident<'a>() -> Parser<'a, char, String> {
+    none_of("\\\"").repeat(0..).map(String::from_iter)
+}
+
 fn string<'a>() -> Parser<'a, char, String> {
     let char_string = none_of("\\\"").repeat(0..).map(String::from_iter);
     sym('\"') * char_string - sym('\"')
 }
 
+fn dependency_exists<'a>() -> Parser<'a, char, DependencyCheck> {
+    (tag("exists") * space() * tag("->") - space() + ident())
+        .name("dependency_exists")
+        .map(|(_, f)| DependencyCheck::Exists(f))
+}
+
+fn dependency_contains<'a>() -> Parser<'a, char, DependencyCheck> {
+    (tag("contains") * space() * string() - space() * tag("->") * space() + ident())
+        .name("dependency_contains")
+        .map(|(pattern, dep_name)| DependencyCheck::Contains(pattern, dep_name))
+}
+
+fn dependencies<'a>() -> Parser<'a, char, Vec<DependencyCheck>> {
+    let dependency_rules = dependency_exists() | dependency_contains();
+
+    let items = list(dependency_rules, sym(','));
+    let dependencies = sym('[') * space().opt() * items - space().opt() * sym(']');
+    dependencies.name("dependencies")
+}
+
 fn command_file<'a>() -> Parser<'a, char, Action> {
-    (tag("file") * space() * string()).map(Action::File)
+    (tag("file") * space() * string() + (space() * dependencies()).opt()).map(|(f, d)| {
+        if let Some(a) = d {
+            return Action::FileWithDependencies(f, a);
+        }
+
+        Action::File(f)
+    })
 }
 
 fn command_files<'a>() -> Parser<'a, char, Action> {
@@ -87,6 +117,38 @@ fn parse_app<'a>() -> Parser<'a, char, App> {
 mod tests {
     use super::*;
     use crate::domain::Action;
+
+    #[test]
+    fn test_parse_dependency_exists() {
+        let input = r#"exists -> rule"#.chars().collect::<Vec<_>>();
+        let r = dependency_exists().parse(&input).unwrap();
+
+        assert_eq!(r, DependencyCheck::Exists("rule".into()))
+    }
+
+    #[test]
+    fn test_parse_dependency_contains() {
+        let input = r#"contains "content" -> dep"#.chars().collect::<Vec<_>>();
+        let r = dependency_contains().parse(&input).unwrap();
+
+        assert_eq!(r, DependencyCheck::Contains("content".into(), "dep".into()))
+    }
+
+    #[test]
+    fn test_parse_dependencies() {
+        let input = r#"[exists -> dep1, contains "x" -> dep2]"#
+            .chars()
+            .collect::<Vec<_>>();
+        let r = dependencies().parse(&input).unwrap();
+
+        assert_eq!(
+            r,
+            vec![
+                DependencyCheck::Exists("dep1".into()),
+                DependencyCheck::Contains("content".into(), "dep2".into())
+            ]
+        )
+    }
 
     #[test]
     fn test_parse_context_custom() {

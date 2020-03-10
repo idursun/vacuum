@@ -13,8 +13,15 @@ pub enum Folder {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum DependencyCheck {
+    Contains(String, String),
+    Exists(String),
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Action {
     File(String),
+    FileWithDependencies(String, Vec<DependencyCheck>),
     Files(String),
     Context(Folder, Vec<Action>),
     Execute(String, Option<String>),
