@@ -5,6 +5,7 @@ use crate::application::executor;
 use crate::application::usecase::UseCase;
 use crate::application::Handler;
 use crate::domain::App;
+use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
 
@@ -18,17 +19,54 @@ impl DepsUseCase {
     }
 }
 
-struct FileReaderExecutor<'a> {
-    app: &'a App,
+struct DependencyAnalyzer {
+    analyzer: Box<dyn Analyzer>,
 }
 
-impl<'a> FileReaderExecutor<'a> {
-    fn new(app: &'a App) -> Self {
-        FileReaderExecutor { app }
+struct AlacrittyAnalyzer;
+struct VimAnalyzer;
+struct NoopAnalyzer;
+
+trait Analyzer {
+    fn analyze(&self, file_path: PathBuf);
+}
+
+impl Analyzer for AlacrittyAnalyzer {
+    fn analyze(&self, file_path: PathBuf) {
+        if file_path.file_name().unwrap() == "alacritty.yml" {
+            println!("Alacritty is required");
+        }
     }
 }
 
-impl<'a> Handler for FileReaderExecutor<'a> {
+impl Analyzer for VimAnalyzer {
+    fn analyze(&self, file_path: PathBuf) {
+        let mut contents = String::new();
+        let mut file = File::open(file_path).unwrap(); //TODO get rid of
+        file.read_to_string(&mut contents).unwrap();
+        if contents.contains("Plug") {
+            println!("VimPlug is required");
+        }
+    }
+}
+
+impl Analyzer for NoopAnalyzer {
+    fn analyze(&self, _file_path: PathBuf) {}
+}
+
+impl DependencyAnalyzer {
+    fn new(app: &App) -> Self {
+        let analyzer: Box<dyn Analyzer> = match app.name.as_ref() {
+            "alacritty" => Box::new(AlacrittyAnalyzer {}),
+            "vim" => Box::new(VimAnalyzer {}),
+            _ => Box::new(NoopAnalyzer {}),
+        };
+
+        DependencyAnalyzer { analyzer }
+    }
+}
+
+impl Handler for DependencyAnalyzer {
     type Context = TargetDirectoryContext;
 
     fn handle_file<S: AsRef<str>>(
@@ -39,33 +77,20 @@ impl<'a> Handler for FileReaderExecutor<'a> {
         let mut file_path = ctx.current();
         file_path.push(file_name.as_ref());
         if file_path.exists() {
-            if file_name.as_ref() == "alacritty.yml" {
-                println!("Alacritty is required");
-            }
-            let mut contents = String::new();
-            let mut file = std::fs::File::open(file_path)?;
-            file.read_to_string(&mut contents)?;
-            if contents.contains("Plug") {
-                println!("VimPlug is required");
-            }
-            //println!("{}", contents);
+            self.analyzer.analyze(file_path.clone());
         }
         Ok(())
     }
 
-    fn handle_files<S: AsRef<str>>(
-        &self,
-        ctx: &Self::Context,
-        pattern: S,
-    ) -> Result<(), VacuumError> {
+    fn handle_files<S: AsRef<str>>(&self, _: &Self::Context, _: S) -> Result<(), VacuumError> {
         Ok(())
     }
 
     fn handle_execute<S: AsRef<str>>(
         &self,
-        ctx: &Self::Context,
-        command: S,
-        file_name: &Option<String>,
+        _: &Self::Context,
+        _: S,
+        _: &Option<String>,
     ) -> Result<(), VacuumError> {
         Ok(())
     }
@@ -73,7 +98,7 @@ impl<'a> Handler for FileReaderExecutor<'a> {
 
 impl UseCase for DepsUseCase {
     fn run(&self, app: &App) -> Result<(), VacuumError> {
-        let executor = FileReaderExecutor::new(app);
+        let executor = DependencyAnalyzer::new(app);
         executor::execute(
             &executor,
             &TargetDirectoryContext::new(self.app_dir.clone()),
