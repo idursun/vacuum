@@ -32,6 +32,7 @@ fn main() -> Result<(), VacuumError> {
         println!(" commands:");
         println!(" store   : Store configurations files into folder");
         println!(" restore : Restore configurations files from folder");
+        println!(" deps    : List possible dependencies based on configuration files");
         return Ok(());
     }
 
