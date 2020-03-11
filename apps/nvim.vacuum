@@ -1,13 +1,22 @@
 app "nvim" {
     config {
         cd "nvim" {
-            file "init.vim" [exists -> install]
+            file "init.vim" [exists -> install-linux]
+        }
+    }
+    local {
+        cd "nvim" {
+            file "init.vim" [exists -> install-windows]
         }
     }
 }
 
 dependencies {
-    install {
+    install-linux {
+        pacman -S neovim
+    }
+
+    install-windows {
         scoop install neovim
     }
 }

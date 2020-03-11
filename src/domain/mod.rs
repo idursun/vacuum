@@ -9,6 +9,7 @@ pub struct App {
 pub enum Folder {
     Home,
     Config,
+    Local,
     Custom(String),
     Search(String),
 }

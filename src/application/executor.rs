@@ -22,6 +22,7 @@ where
                 match context {
                     Folder::Home => sub_contexts.push(ctx.home()),
                     Folder::Config => sub_contexts.push(ctx.config()),
+                    Folder::Local => sub_contexts.push(ctx.local()),
                     Folder::Custom(name) => sub_contexts.push(ctx.sub(name)),
                     Folder::Search(pattern) => sub_contexts.extend(ctx.search(pattern)),
                 }

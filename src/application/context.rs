@@ -3,6 +3,7 @@ pub trait Context: Sized {
     fn current(&self) -> Self::Current;
     fn home(&self) -> Self;
     fn config(&self) -> Self;
+    fn local(&self) -> Self;
     fn sub<S: AsRef<str>>(&self, sub: S) -> Self;
     fn search(&self, pattern: &str) -> Vec<Self>;
 }

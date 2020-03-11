@@ -31,6 +31,12 @@ impl Context for TargetDirectoryContext {
         }
     }
 
+    fn local(&self) -> Self {
+        Self {
+            target: self.target.sub("local"),
+        }
+    }
+
     fn sub<S: AsRef<str>>(&self, sub: S) -> Self {
         let sub = sub.as_ref();
         let target = self.target.sub(sub);

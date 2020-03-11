@@ -39,6 +39,13 @@ impl Context for RestoreContext {
         }
     }
 
+    fn local(&self) -> Self {
+        Self {
+            source: self.source.sub("local"),
+            target: self.target.local(),
+        }
+    }
+
     fn sub<S: AsRef<str>>(&self, sub: S) -> Self {
         let sub = sub.as_ref();
         let source = self.source.sub(sub);

@@ -9,9 +9,12 @@ impl Context for PathBuf {
     fn home(&self) -> Self {
         dirs::home_dir().unwrap()
     }
-
     fn config(&self) -> Self {
         dirs::config_dir().unwrap()
+    }
+
+    fn local(&self) -> Self {
+        dirs::data_local_dir().unwrap()
     }
 
     fn sub<S: AsRef<str>>(&self, sub: S) -> Self {

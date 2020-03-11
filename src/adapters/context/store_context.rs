@@ -39,6 +39,13 @@ impl Context for StoreContext {
         }
     }
 
+    fn local(&self) -> Self {
+        Self {
+            source: self.source.local(),
+            target: self.target.sub("local"),
+        }
+    }
+
     fn sub<S: AsRef<str>>(&self, sub: S) -> Self {
         let sub = sub.as_ref();
         let source = self.source.sub(sub);

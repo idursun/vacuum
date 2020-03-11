@@ -81,6 +81,14 @@ fn context_config<'a>() -> Parser<'a, char, Action> {
             .name("config")
 }
 
+fn context_local<'a>() -> Parser<'a, char, Action> {
+    tag("local")
+        * space()
+        * call(actions)
+            .map(|actions| Action::Context(Folder::Local, actions))
+            .name("local")
+}
+
 fn context_search<'a>() -> Parser<'a, char, Action> {
     let f = tag("search") * space() * string() + space() * call(actions).name("search");
     f.map(|(pattern, actions)| Action::Context(Folder::Search(pattern), actions))
@@ -97,6 +105,7 @@ fn actions<'a>() -> Parser<'a, char, Vec<Action>> {
         | command_exec()
         | context_home()
         | context_config()
+        | context_local()
         | context_search()
         | context_custom();
 
