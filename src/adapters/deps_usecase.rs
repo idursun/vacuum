@@ -42,14 +42,12 @@ impl<'a> DependencyAnalyzer<'a> {
                 dependencies_map.insert(dependency.name.clone(), dependency.block.clone());
             }
         }
-        let mut buffer = String::new();
+        let mut matched_rules = Vec::default();
         for check in dependency_checks {
             match check {
                 DependencyCheck::Exists(rule) => {
                     if file_path.exists() && dependencies_map.contains_key(rule) {
-                        let block = dependencies_map.get(rule).unwrap();
-                        buffer.push_str(format!("  {}:", rule.blue()).as_str());
-                        buffer.push_str(block);
+                        matched_rules.push(rule);
                     }
                 }
                 DependencyCheck::Contains(content, rule) => {
@@ -58,17 +56,23 @@ impl<'a> DependencyAnalyzer<'a> {
                         let mut contents = String::new();
                         file.read_to_string(&mut contents)?;
                         if contents.contains(content) && dependencies_map.contains_key(rule) {
-                            let block = dependencies_map.get(rule).unwrap();
-                            buffer.push_str(format!("{}:", rule.blue()).as_str());
-                            buffer.push_str(block);
+                            matched_rules.push(rule);
                         }
                     }
                 }
             }
         }
-        if !buffer.is_empty() {
+
+        if !matched_rules.is_empty() {
+            let mut buffer = String::new();
+            for matched_rule in matched_rules {
+                let block = dependencies_map.get(matched_rule).unwrap();
+                buffer.push_str(format!("  {}:", matched_rule.blue()).as_str());
+                buffer.push_str(block);
+            }
             println!("{}\n{}", self.app.name.blue(), buffer);
         }
+
         Ok(())
     }
 }
