@@ -5,3 +5,9 @@ app "alacritty" {
         }
     }
 }
+
+dependencies {
+    install {
+        choco install alacritty
+    }
+}

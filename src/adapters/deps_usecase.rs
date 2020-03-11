@@ -5,6 +5,7 @@ use crate::application::executor;
 use crate::application::usecase::UseCase;
 use crate::application::Handler;
 use crate::domain::{App, DependencyCheck};
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -19,11 +20,13 @@ impl DepsUseCase {
     }
 }
 
-struct DependencyAnalyzer;
+struct DependencyAnalyzer<'a> {
+    app: &'a App,
+}
 
-impl DependencyAnalyzer {
-    fn new() -> Self {
-        DependencyAnalyzer {}
+impl<'a> DependencyAnalyzer<'a> {
+    fn new(app: &'a App) -> Self {
+        DependencyAnalyzer { app }
     }
 
     fn analyze(
@@ -31,12 +34,18 @@ impl DependencyAnalyzer {
         file_path: PathBuf,
         dependency_checks: &Vec<DependencyCheck>,
     ) -> Result<(), VacuumError> {
+        let mut dependencies_map = HashMap::new();
+
+        if let Some(dependencies) = self.app.dependencies.as_ref() {
+            for dependency in dependencies {
+                dependencies_map.insert(dependency.name.clone(), dependency.block.clone());
+            }
+        }
         for check in dependency_checks {
-            dbg!(&check);
             match check {
                 DependencyCheck::Exists(rule) => {
-                    if file_path.exists() {
-                        println!("Dependency: {}", rule);
+                    if file_path.exists() && dependencies_map.contains_key(rule) {
+                        println!("{}", dependencies_map.get(rule).unwrap())
                     }
                 }
                 DependencyCheck::Contains(content, rule) => {
@@ -44,8 +53,8 @@ impl DependencyAnalyzer {
                         let mut file = File::open(file_path.as_path())?;
                         let mut contents = String::new();
                         file.read_to_string(&mut contents)?;
-                        if contents.contains(content) {
-                            println!("Dependency: {}", rule);
+                        if contents.contains(content) && dependencies_map.contains_key(rule) {
+                            println!("{}", dependencies_map.get(rule).unwrap())
                         }
                     }
                 }
@@ -55,7 +64,7 @@ impl DependencyAnalyzer {
     }
 }
 
-impl Handler for DependencyAnalyzer {
+impl<'a> Handler for DependencyAnalyzer<'a> {
     type Context = TargetDirectoryContext;
 
     fn handle_file<S: AsRef<str>>(
@@ -88,7 +97,7 @@ impl Handler for DependencyAnalyzer {
 
 impl UseCase for DepsUseCase {
     fn run(&self, app: &App) -> Result<(), VacuumError> {
-        let executor = DependencyAnalyzer::new();
+        let executor = DependencyAnalyzer::new(app);
         executor::execute(
             &executor,
             &TargetDirectoryContext::new(self.app_dir.clone()),
