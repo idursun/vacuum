@@ -20,8 +20,7 @@ pub enum DependencyCheck {
 
 #[derive(Debug, PartialEq)]
 pub enum Action {
-    File(String),
-    FileWithDependencies(String, Vec<DependencyCheck>),
+    File(String, Option<Vec<DependencyCheck>>),
     Files(String),
     Context(Folder, Vec<Action>),
     Execute(String, Option<String>),

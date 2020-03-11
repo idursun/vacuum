@@ -50,12 +50,8 @@ fn dependencies<'a>() -> Parser<'a, char, Vec<DependencyCheck>> {
 }
 
 fn command_file<'a>() -> Parser<'a, char, Action> {
-    (tag("file") * space() * string() + space() * dependencies().opt()).map(|(f, d)| {
-        if let Some(d) = d {
-            return Action::FileWithDependencies(f, d);
-        }
-        Action::File(f)
-    })
+    (tag("file") * space() * string() + space() * dependencies().opt())
+        .map(|(f, d)| Action::File(f, d))
 }
 
 fn command_files<'a>() -> Parser<'a, char, Action> {
@@ -168,7 +164,7 @@ mod tests {
             Ok(Action::Context(
                 Folder::Custom("WebStorm".into()),
                 vec![
-                    Action::File("*.xml".into()),
+                    Action::File("*.xml".into(), None),
                     Action::Execute("ls files".into(), None)
                 ]
             ))
@@ -190,7 +186,7 @@ mod tests {
             Ok(Action::Context(
                 Folder::Search(".WebStorm*".into()),
                 vec![
-                    Action::File("*.xml".into()),
+                    Action::File("*.xml".into(), None),
                     Action::Execute("ls files".into(), None)
                 ]
             ))
@@ -212,7 +208,7 @@ mod tests {
             Ok(Action::Context(
                 Folder::Home,
                 vec![
-                    Action::File("*.xml".into()),
+                    Action::File("*.xml".into(), None),
                     Action::Execute("ls files".into(), None)
                 ]
             ))
@@ -232,7 +228,7 @@ mod tests {
         assert_eq!(
             r,
             Ok(vec![
-                Action::File("*.xml".into()),
+                Action::File("*.xml".into(), None),
                 Action::Execute("ls files".into(), None)
             ])
         )
@@ -242,7 +238,7 @@ mod tests {
     fn test_parse_file() {
         let input = r#"file "keyboard.xml""#.chars().collect::<Vec<_>>();
         let r = command_file().parse(&input);
-        assert_eq!(r, Ok(Action::File("keyboard.xml".into())))
+        assert_eq!(r, Ok(Action::File("keyboard.xml".into(), None)))
     }
 
     #[test]
@@ -254,12 +250,12 @@ mod tests {
         let r = command_file().parse(&input);
         assert_eq!(
             r,
-            Ok(Action::FileWithDependencies(
+            Ok(Action::File(
                 "keyboard.xml".into(),
-                vec![
+                Some(vec![
                     DependencyCheck::Exists("dep1".into()),
                     DependencyCheck::Contains("plug".into(), "dep2".into())
-                ],
+                ]),
             ))
         )
     }
@@ -326,7 +322,7 @@ mod tests {
                                 ),
                                 Action::Context(
                                     Folder::Custom("options".into()),
-                                    vec![Action::File("editor.xml".into())],
+                                    vec![Action::File("editor.xml".into(), None)],
                                 ),
                             ],
                         )],
