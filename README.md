@@ -1,6 +1,6 @@
 # vacuum
 
-[![Build Status](https://travis-ci.org/idursun/vacuum.svg?branch=master)](https://travis-ci.org/idursun/vacuum)
+![build](https://github.com/idursun/vacuum/workflows/Rust/badge.svg)
 
 Vacuum is a system-wide configuration file collector.
 
