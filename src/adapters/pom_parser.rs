@@ -1,6 +1,6 @@
 use crate::application::error::VacuumError;
 use crate::application::parser::VacuumFileParser;
-use crate::domain::{Action, App, DependencyCheck, Folder};
+use crate::domain::{Action, App, Dependency, DependencyCheck, Folder};
 use pom::parser::*;
 use std::iter::FromIterator;
 
@@ -20,7 +20,7 @@ fn space<'a>() -> Parser<'a, char, ()> {
 
 fn ident<'a>() -> Parser<'a, char, String> {
     none_of("\\\", \r\n\t[]{}()")
-        .repeat(0..)
+        .repeat(1..)
         .map(String::from_iter)
 }
 
@@ -106,12 +106,30 @@ fn actions<'a>() -> Parser<'a, char, Vec<Action>> {
 }
 
 fn parse_app<'a>() -> Parser<'a, char, App> {
-    let app = space() * tag("app") * space() * string() + space() * call(actions);
-    app.map(|(name, actions)| App {
+    let app = space() * tag("app") * space() * string()
+        + space() * call(actions)
+        + parse_dependencies_section().opt();
+    app.map(|((name, actions), dependencies)| App {
         name,
         actions,
-        dependencies: None,
+        dependencies,
     })
+}
+
+fn parse_dependencies_section<'a>() -> Parser<'a, char, Vec<Dependency>> {
+    let dependency_rules = list(dependency_rule(), space()).name("dependency_rules");
+    let dependencies_section =
+        space() * tag("dependencies") * space() * sym('{') * dependency_rules - space() * sym('}');
+
+    dependencies_section.name("dependencies_section")
+}
+
+fn dependency_rule<'a>() -> Parser<'a, char, Dependency> {
+    let block = none_of("}").repeat(1..).map(String::from_iter);
+
+    (space() * ident() + space() * sym('{') * block - space() * sym('}'))
+        .map(|(name, block)| Dependency { name, block })
+        .name("dependency_rule")
 }
 
 #[cfg(test)]
@@ -149,6 +167,68 @@ mod tests {
             vec![
                 DependencyCheck::Exists("dep1".into()),
                 DependencyCheck::Contains("content".into(), "dep2".into())
+            ]
+        )
+    }
+
+    #[test]
+    fn test_parse_dependency_rule() {
+        let input = r#"
+           
+                dep1 {
+                    curl -L http://application.com
+                }
+          
+        "#
+        .chars()
+        .collect::<Vec<_>>();
+        let r = dependency_rule().parse(&input).unwrap();
+
+        assert_eq!(
+            r,
+            Dependency {
+                name: "dep1".into(),
+                block: r#"
+                    curl -L http://application.com
+                "#
+                .into(),
+            }
+        )
+    }
+
+    #[test]
+    fn test_parse_dependencies_section() {
+        let input = r#"
+            dependencies {
+                dep1 {
+                    curl -L http://application.com
+                }
+                dep2 {
+                    curl -L http://application2.com
+                }
+            }
+        "#
+        .chars()
+        .collect::<Vec<_>>();
+        let r = parse_dependencies_section().parse(&input).unwrap();
+
+        assert_eq!(
+            r,
+            vec![
+                Dependency {
+                    name: "dep1".into(),
+                    block: r#"
+                    curl -L http://application.com
+                "#
+                    .into(),
+                },
+                Dependency {
+                    name: "dep2".into(),
+                    block: r#"
+                    curl -L http://application2.com
+                "#
+                    .into(),
+                }
             ]
         )
     }
@@ -348,9 +428,10 @@ mod tests {
             
             dependencies {
                 dep1 {
+                    curl -L http://application.com
                 }
-                
                 dep2 {
+                    curl -L http://application2.com
                 }
             }
             "#
@@ -372,7 +453,22 @@ mod tests {
                         ]),
                     )],
                 )],
-                dependencies: None
+                dependencies: Some(vec![
+                    Dependency {
+                        name: "dep1".into(),
+                        block: r#"
+                    curl -L http://application.com
+                "#
+                        .into(),
+                    },
+                    Dependency {
+                        name: "dep2".into(),
+                        block: r#"
+                    curl -L http://application2.com
+                "#
+                        .into(),
+                    }
+                ])
             })
         );
     }
