@@ -107,7 +107,11 @@ fn actions<'a>() -> Parser<'a, char, Vec<Action>> {
 
 fn parse_app<'a>() -> Parser<'a, char, App> {
     let app = space() * tag("app") * space() * string() + space() * call(actions);
-    app.map(|(name, actions)| App { name, actions })
+    app.map(|(name, actions)| App {
+        name,
+        actions,
+        dependencies: None,
+    })
 }
 
 #[cfg(test)]
@@ -328,6 +332,7 @@ mod tests {
                         )],
                     )],
                 )],
+                dependencies: None
             })
         );
     }
@@ -339,7 +344,16 @@ mod tests {
                 home {
                     file "some-app.config" [exists -> dep1, contains "content" -> dep2]
                 }
-            }"#
+            }
+            
+            dependencies {
+                dep1 {
+                }
+                
+                dep2 {
+                }
+            }
+            "#
         .chars()
         .collect::<Vec<_>>();
 
@@ -358,6 +372,7 @@ mod tests {
                         ]),
                     )],
                 )],
+                dependencies: None
             })
         );
     }
