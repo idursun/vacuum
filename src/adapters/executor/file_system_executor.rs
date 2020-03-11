@@ -2,6 +2,7 @@ use super::logger::Logger;
 use crate::application::context::Context;
 use crate::application::error::VacuumError;
 use crate::application::handler::Handler;
+use crate::domain::DependencyCheck;
 use colored::*;
 use std::fs;
 use std::marker::PhantomData;
@@ -32,6 +33,7 @@ where
         &self,
         ctx: &Self::Context,
         file_name: S,
+        _: &Option<Vec<DependencyCheck>>,
     ) -> Result<(), VacuumError> {
         let (source, target) = ctx.sub(file_name.as_ref()).current();
         if !source.exists() {

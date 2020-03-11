@@ -13,7 +13,9 @@ where
 {
     for step in actions {
         match step {
-            Action::File(filename, _) => handler.handle_file(ctx, filename)?,
+            Action::File(filename, dependency_checks) => {
+                handler.handle_file(ctx, filename, dependency_checks)?
+            }
             Action::Files(pattern) => handler.handle_files(ctx, pattern)?,
             Action::Context(context, sub_actions) => {
                 let mut sub_contexts = Vec::new();

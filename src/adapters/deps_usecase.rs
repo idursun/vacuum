@@ -4,7 +4,7 @@ use crate::application::error::VacuumError;
 use crate::application::executor;
 use crate::application::usecase::UseCase;
 use crate::application::Handler;
-use crate::domain::App;
+use crate::domain::{App, DependencyCheck};
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -19,50 +19,39 @@ impl DepsUseCase {
     }
 }
 
-struct DependencyAnalyzer {
-    analyzer: Box<dyn Analyzer>,
-}
-
-struct AlacrittyAnalyzer;
-struct VimAnalyzer;
-struct NoopAnalyzer;
-
-trait Analyzer {
-    fn analyze(&self, file_path: PathBuf);
-}
-
-impl Analyzer for AlacrittyAnalyzer {
-    fn analyze(&self, file_path: PathBuf) {
-        if file_path.file_name().unwrap() == "alacritty.yml" {
-            println!("Alacritty is required");
-        }
-    }
-}
-
-impl Analyzer for VimAnalyzer {
-    fn analyze(&self, file_path: PathBuf) {
-        let mut contents = String::new();
-        let mut file = File::open(file_path).unwrap(); //TODO get rid of
-        file.read_to_string(&mut contents).unwrap();
-        if contents.contains("Plug") {
-            println!("VimPlug is required");
-        }
-    }
-}
-
-impl Analyzer for NoopAnalyzer {
-    fn analyze(&self, _file_path: PathBuf) {}
-}
+struct DependencyAnalyzer;
 
 impl DependencyAnalyzer {
-    fn new(app: &App) -> Self {
-        let analyzer: Box<dyn Analyzer> = match app.name.as_ref() {
-            "alacritty" => Box::new(AlacrittyAnalyzer {}),
-            "vim" => Box::new(VimAnalyzer {}),
-            _ => Box::new(NoopAnalyzer {}),
-        };
+    fn new() -> Self {
+        DependencyAnalyzer {}
+    }
 
-        DependencyAnalyzer { analyzer }
+    fn analyze(
+        &self,
+        file_path: PathBuf,
+        dependency_checks: &Vec<DependencyCheck>,
+    ) -> Result<(), VacuumError> {
+        for check in dependency_checks {
+            dbg!(&check);
+            match check {
+                DependencyCheck::Exists(rule) => {
+                    if file_path.exists() {
+                        println!("Dependency: {}", rule);
+                    }
+                }
+                DependencyCheck::Contains(content, rule) => {
+                    if file_path.exists() {
+                        let mut file = File::open(file_path.as_path())?;
+                        let mut contents = String::new();
+                        file.read_to_string(&mut contents)?;
+                        if contents.contains(content) {
+                            println!("Dependency: {}", rule);
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
     }
 }
 
@@ -73,11 +62,12 @@ impl Handler for DependencyAnalyzer {
         &self,
         ctx: &Self::Context,
         file_name: S,
+        dependency_checks: &Option<Vec<DependencyCheck>>,
     ) -> Result<(), VacuumError> {
         let mut file_path = ctx.current();
         file_path.push(file_name.as_ref());
-        if file_path.exists() {
-            self.analyzer.analyze(file_path.clone());
+        if dependency_checks.is_some() {
+            self.analyze(file_path.clone(), dependency_checks.as_ref().unwrap())?;
         }
         Ok(())
     }
@@ -98,7 +88,7 @@ impl Handler for DependencyAnalyzer {
 
 impl UseCase for DepsUseCase {
     fn run(&self, app: &App) -> Result<(), VacuumError> {
-        let executor = DependencyAnalyzer::new(app);
+        let executor = DependencyAnalyzer::new();
         executor::execute(
             &executor,
             &TargetDirectoryContext::new(self.app_dir.clone()),
