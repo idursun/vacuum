@@ -1,7 +1,13 @@
 app "nvim" {
     config {
         cd "nvim" {
-            file "init.vim"
+            file "init.vim" [exists -> install]
         }
+    }
+}
+
+dependencies {
+    install {
+        scoop install neovim
     }
 }

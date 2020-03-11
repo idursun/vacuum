@@ -1,5 +1,11 @@
 app "vim" {
     home {
-       file ".vimrc"
+       file ".vimrc" [exists -> install]
+    }
+}
+
+dependencies {
+    install {
+        scoop install vim
     }
 }
