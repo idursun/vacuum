@@ -19,7 +19,9 @@ fn space<'a>() -> Parser<'a, char, ()> {
 }
 
 fn ident<'a>() -> Parser<'a, char, String> {
-    none_of("\\\"").repeat(0..).map(String::from_iter)
+    none_of("\\\", \r\n\t[]{}()")
+        .repeat(0..)
+        .map(String::from_iter)
 }
 
 fn string<'a>() -> Parser<'a, char, String> {
@@ -28,13 +30,13 @@ fn string<'a>() -> Parser<'a, char, String> {
 }
 
 fn dependency_exists<'a>() -> Parser<'a, char, DependencyCheck> {
-    (tag("exists") * space() * tag("->") - space() + ident())
+    (tag("exists") * space() * tag("->") * space() * ident() - space())
         .name("dependency_exists")
-        .map(|(_, f)| DependencyCheck::Exists(f))
+        .map(DependencyCheck::Exists)
 }
 
 fn dependency_contains<'a>() -> Parser<'a, char, DependencyCheck> {
-    (tag("contains") * space() * string() - space() * tag("->") * space() + ident())
+    (tag("contains") * space() * string() + space() * tag("->") * space() * ident() - space())
         .name("dependency_contains")
         .map(|(pattern, dep_name)| DependencyCheck::Contains(pattern, dep_name))
 }
@@ -42,17 +44,16 @@ fn dependency_contains<'a>() -> Parser<'a, char, DependencyCheck> {
 fn dependencies<'a>() -> Parser<'a, char, Vec<DependencyCheck>> {
     let dependency_rules = dependency_exists() | dependency_contains();
 
-    let items = list(dependency_rules, sym(','));
-    let dependencies = sym('[') * space().opt() * items - space().opt() * sym(']');
+    let items = list(dependency_rules, sym(',') * space());
+    let dependencies = space() * sym('[') * space() * items - space() * sym(']');
     dependencies.name("dependencies")
 }
 
 fn command_file<'a>() -> Parser<'a, char, Action> {
-    (tag("file") * space() * string() + (space() * dependencies()).opt()).map(|(f, d)| {
-        if let Some(a) = d {
-            return Action::FileWithDependencies(f, a);
+    (tag("file") * space() * string() + space() * dependencies().opt()).map(|(f, d)| {
+        if let Some(d) = d {
+            return Action::FileWithDependencies(f, d);
         }
-
         Action::File(f)
     })
 }
@@ -120,7 +121,7 @@ mod tests {
 
     #[test]
     fn test_parse_dependency_exists() {
-        let input = r#"exists -> rule"#.chars().collect::<Vec<_>>();
+        let input = r#"exists     ->   rule   , contains"#.chars().collect::<Vec<_>>();
         let r = dependency_exists().parse(&input).unwrap();
 
         assert_eq!(r, DependencyCheck::Exists("rule".into()))
@@ -128,7 +129,9 @@ mod tests {
 
     #[test]
     fn test_parse_dependency_contains() {
-        let input = r#"contains "content" -> dep"#.chars().collect::<Vec<_>>();
+        let input = r#"contains  "content"  ->  dep,exists "#
+            .chars()
+            .collect::<Vec<_>>();
         let r = dependency_contains().parse(&input).unwrap();
 
         assert_eq!(r, DependencyCheck::Contains("content".into(), "dep".into()))
@@ -136,7 +139,7 @@ mod tests {
 
     #[test]
     fn test_parse_dependencies() {
-        let input = r#"[exists -> dep1, contains "x" -> dep2]"#
+        let input = r#"[exists -> dep1   , contains "content" -> dep2]"#
             .chars()
             .collect::<Vec<_>>();
         let r = dependencies().parse(&input).unwrap();
@@ -240,6 +243,25 @@ mod tests {
         let input = r#"file "keyboard.xml""#.chars().collect::<Vec<_>>();
         let r = command_file().parse(&input);
         assert_eq!(r, Ok(Action::File("keyboard.xml".into())))
+    }
+
+    #[test]
+    fn test_parse_file_with_dependencies() {
+        let input = r#"file "keyboard.xml" [exists -> dep1 , contains "plug" -> dep2 ]"#
+            .chars()
+            .collect::<Vec<_>>();
+
+        let r = command_file().parse(&input);
+        assert_eq!(
+            r,
+            Ok(Action::FileWithDependencies(
+                "keyboard.xml".into(),
+                vec![
+                    DependencyCheck::Exists("dep1".into()),
+                    DependencyCheck::Contains("plug".into(), "dep2".into())
+                ],
+            ))
+        )
     }
 
     #[test]
