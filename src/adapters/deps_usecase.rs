@@ -5,6 +5,7 @@ use crate::application::executor;
 use crate::application::usecase::UseCase;
 use crate::application::Handler;
 use crate::domain::{App, DependencyCheck};
+use colored::*;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
@@ -41,11 +42,14 @@ impl<'a> DependencyAnalyzer<'a> {
                 dependencies_map.insert(dependency.name.clone(), dependency.block.clone());
             }
         }
+        let mut buffer = String::new();
         for check in dependency_checks {
             match check {
                 DependencyCheck::Exists(rule) => {
                     if file_path.exists() && dependencies_map.contains_key(rule) {
-                        println!("{}", dependencies_map.get(rule).unwrap())
+                        let block = dependencies_map.get(rule).unwrap();
+                        buffer.push_str(format!("  {}:", rule.blue()).as_str());
+                        buffer.push_str(block);
                     }
                 }
                 DependencyCheck::Contains(content, rule) => {
@@ -54,11 +58,16 @@ impl<'a> DependencyAnalyzer<'a> {
                         let mut contents = String::new();
                         file.read_to_string(&mut contents)?;
                         if contents.contains(content) && dependencies_map.contains_key(rule) {
-                            println!("{}", dependencies_map.get(rule).unwrap())
+                            let block = dependencies_map.get(rule).unwrap();
+                            buffer.push_str(format!("{}:", rule.blue()).as_str());
+                            buffer.push_str(block);
                         }
                     }
                 }
             }
+        }
+        if !buffer.is_empty() {
+            println!("{}\n{}", self.app.name.blue(), buffer);
         }
         Ok(())
     }
