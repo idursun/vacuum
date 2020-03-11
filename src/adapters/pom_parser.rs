@@ -331,4 +331,34 @@ mod tests {
             })
         );
     }
+
+    #[test]
+    fn test_parse_deps() {
+        let input = r#"
+            app "some-app" {
+                home {
+                    file "some-app.config" [exists -> dep1, contains "content" -> dep2]
+                }
+            }"#
+        .chars()
+        .collect::<Vec<_>>();
+
+        let r = parse_app().parse(&input);
+        assert_eq!(
+            r,
+            Ok(App {
+                name: "some-app".into(),
+                actions: vec![Action::Context(
+                    Folder::Home,
+                    vec![Action::File(
+                        "some-app.config".into(),
+                        Some(vec![
+                            DependencyCheck::Exists("dep1".into()),
+                            DependencyCheck::Contains("content".into(), "dep2".into())
+                        ]),
+                    )],
+                )],
+            })
+        );
+    }
 }
