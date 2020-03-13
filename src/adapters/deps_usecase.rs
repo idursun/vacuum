@@ -6,7 +6,7 @@ use crate::application::usecase::UseCase;
 use crate::application::Handler;
 use crate::domain::{App, DependencyCheck};
 use colored::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::Read;
 use std::path::PathBuf;
@@ -42,12 +42,12 @@ impl<'a> DependencyAnalyzer<'a> {
                 dependencies_map.insert(dependency.name.clone(), dependency.block.clone());
             }
         }
-        let mut matched_rules = Vec::default();
+        let mut matched_rules = HashSet::new();
         for check in dependency_checks {
             match check {
                 DependencyCheck::Exists(rule) => {
                     if file_path.exists() && dependencies_map.contains_key(rule) {
-                        matched_rules.push(rule);
+                        matched_rules.insert(rule);
                     }
                 }
                 DependencyCheck::Contains(content, rule) => {
@@ -56,7 +56,7 @@ impl<'a> DependencyAnalyzer<'a> {
                         let mut contents = String::new();
                         file.read_to_string(&mut contents)?;
                         if contents.contains(content) && dependencies_map.contains_key(rule) {
-                            matched_rules.push(rule);
+                            matched_rules.insert(rule);
                         }
                     }
                 }
