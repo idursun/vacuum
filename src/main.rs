@@ -2,12 +2,14 @@ mod adapters;
 mod application;
 mod domain;
 
-use crate::adapters::{DepsUseCase, PomParser};
-use crate::adapters::{RestoreUseCase, StoreUseCase};
+use crate::adapters::{
+    parsers::pom_parser::PomParser,
+    use_cases::{DepsUseCase, RestoreUseCase, StoreUseCase},
+};
 use crate::application::error::VacuumError;
+use crate::application::parser::VacuumFileParser;
 use crate::application::usecase::UseCase;
 use crate::domain::App;
-use application::parser::VacuumFileParser;
 use std::fs;
 
 fn parse_vacuum_files() -> Result<Vec<App>, VacuumError> {
