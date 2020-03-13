@@ -9,7 +9,7 @@ pub struct PomParser;
 impl VacuumFileParser for PomParser {
     fn parse(input: String) -> Result<App, VacuumError> {
         let input = input.chars().collect::<Vec<_>>();
-        let result = parse_app().parse(&input);
+        let result = parse_vacuum_file().parse(&input);
         result.map_err(VacuumError::ParseError)
     }
 }
@@ -68,7 +68,7 @@ fn command_exec<'a>() -> Parser<'a, char, Action> {
 fn context_home<'a>() -> Parser<'a, char, Action> {
     tag("home")
         * space()
-        * call(actions)
+        * call(parse_actions)
             .map(|actions| Action::Context(Folder::Home, actions))
             .name("home")
 }
@@ -76,7 +76,7 @@ fn context_home<'a>() -> Parser<'a, char, Action> {
 fn context_config<'a>() -> Parser<'a, char, Action> {
     tag("config")
         * space()
-        * call(actions)
+        * call(parse_actions)
             .map(|actions| Action::Context(Folder::Config, actions))
             .name("config")
 }
@@ -84,22 +84,22 @@ fn context_config<'a>() -> Parser<'a, char, Action> {
 fn context_local<'a>() -> Parser<'a, char, Action> {
     tag("local")
         * space()
-        * call(actions)
+        * call(parse_actions)
             .map(|actions| Action::Context(Folder::Local, actions))
             .name("local")
 }
 
 fn context_search<'a>() -> Parser<'a, char, Action> {
-    let f = tag("search") * space() * string() + space() * call(actions).name("search");
+    let f = tag("search") * space() * string() + space() * call(parse_actions).name("search");
     f.map(|(pattern, actions)| Action::Context(Folder::Search(pattern), actions))
 }
 
 fn context_custom<'a>() -> Parser<'a, char, Action> {
-    let f = tag("cd") * space() * string() + space() * call(actions).name("custom");
+    let f = tag("cd") * space() * string() + space() * call(parse_actions).name("custom");
     f.map(|(folder, actions)| Action::Context(Folder::Custom(folder), actions))
 }
 
-fn actions<'a>() -> Parser<'a, char, Vec<Action>> {
+fn parse_actions<'a>() -> Parser<'a, char, Vec<Action>> {
     let item = command_file()
         | command_files()
         | command_exec()
@@ -114,15 +114,12 @@ fn actions<'a>() -> Parser<'a, char, Vec<Action>> {
     actions.name("actions")
 }
 
-fn parse_app<'a>() -> Parser<'a, char, App> {
-    let app = space() * tag("app") * space() * string()
-        + space() * call(actions)
-        + parse_dependencies_section().opt();
-    app.map(|((name, actions), dependencies)| App {
-        name,
-        actions,
-        dependencies,
-    })
+fn dependency_rule<'a>() -> Parser<'a, char, Dependency> {
+    let block = none_of("}").repeat(1..).map(String::from_iter);
+
+    (space() * ident() + space() * sym('{') * block - space() * sym('}'))
+        .map(|(name, block)| Dependency { name, block })
+        .name("dependency_rule")
 }
 
 fn parse_dependencies_section<'a>() -> Parser<'a, char, Vec<Dependency>> {
@@ -133,12 +130,16 @@ fn parse_dependencies_section<'a>() -> Parser<'a, char, Vec<Dependency>> {
     dependencies_section.name("dependencies_section")
 }
 
-fn dependency_rule<'a>() -> Parser<'a, char, Dependency> {
-    let block = none_of("}").repeat(1..).map(String::from_iter);
+fn parse_vacuum_file<'a>() -> Parser<'a, char, App> {
+    let app = space() * tag("app") * space() * string()
+        + space() * call(parse_actions)
+        + parse_dependencies_section().opt();
 
-    (space() * ident() + space() * sym('{') * block - space() * sym('}'))
-        .map(|(name, block)| Dependency { name, block })
-        .name("dependency_rule")
+    app.map(|((name, actions), dependencies)| App {
+        name,
+        actions,
+        dependencies,
+    })
 }
 
 #[cfg(test)]
@@ -317,7 +318,7 @@ mod tests {
         .chars()
         .collect::<Vec<_>>();
 
-        let r = actions().parse(&input);
+        let r = parse_actions().parse(&input);
         assert_eq!(
             r,
             Ok(vec![
@@ -397,7 +398,7 @@ mod tests {
         .chars()
         .collect::<Vec<_>>();
 
-        let r = parse_app().parse(&input);
+        let r = parse_vacuum_file().parse(&input);
         assert_eq!(
             r,
             Ok(App {
@@ -447,7 +448,7 @@ mod tests {
         .chars()
         .collect::<Vec<_>>();
 
-        let r = parse_app().parse(&input);
+        let r = parse_vacuum_file().parse(&input);
         assert_eq!(
             r,
             Ok(App {
