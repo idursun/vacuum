@@ -88,8 +88,8 @@ impl<'a> Handler for DependencyAnalyzer<'a> {
     ) -> Result<(), VacuumError> {
         let mut file_path = ctx.current();
         file_path.push(file_name.as_ref());
-        if dependency_checks.is_some() {
-            self.analyze(file_path, dependency_checks.as_ref().unwrap())?;
+        if let Some(checks) = dependency_checks {
+            self.analyze(file_path, checks)?;
         }
         Ok(())
     }
