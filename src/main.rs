@@ -36,9 +36,9 @@ fn main() -> Result<(), VacuumError> {
         return Ok(());
     }
 
-    let _ = args.nth(0);
-    let command = args.nth(0).unwrap_or_else(|| "store".to_owned());
-    let output_folder = args.nth(0).unwrap_or_else(|| "output".to_owned());
+    let _ = args.next();
+    let command = args.next().unwrap_or_else(|| "store".to_owned());
+    let output_folder = args.next().unwrap_or_else(|| "output".to_owned());
     let current_dir = std::env::current_dir()?;
 
     let apps = parse_vacuum_files()?;
@@ -51,7 +51,7 @@ fn main() -> Result<(), VacuumError> {
             "store" => StoreUseCase::new(app_dir).run(&app)?,
             "restore" => RestoreUseCase::new(app_dir).run(&app)?,
             "deps" => DepsUseCase::new(app_dir).run(&app)?,
-            c @ _ => panic!("unknown command {}", c),
+            c => panic!("unknown command {}", c),
         };
     }
     Ok(())
@@ -59,7 +59,6 @@ fn main() -> Result<(), VacuumError> {
 
 #[cfg(test)]
 mod tests {
-
     #[test]
     fn all_vacuum_files_parsed_without_errors() {
         assert!(super::parse_vacuum_files().is_ok());

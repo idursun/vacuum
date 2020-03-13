@@ -97,10 +97,9 @@ where
             let output = String::from_utf8(result.stdout).unwrap_or_default();
 
             if let Some(file_name) = file_name {
-                let (_, target) = ctx.current();
-                let mut file_path = target.clone();
-                file_path.push(file_name);
-                std::fs::write(file_path.as_path(), output)?;
+                let (_, mut target) = ctx.current();
+                target.push(file_name);
+                std::fs::write(target.as_path(), output)?;
             }
 
             return Ok(());

@@ -33,7 +33,7 @@ impl<'a> DependencyAnalyzer<'a> {
     fn analyze(
         &self,
         file_path: PathBuf,
-        dependency_checks: &Vec<DependencyCheck>,
+        dependency_checks: &[DependencyCheck],
     ) -> Result<(), VacuumError> {
         let mut dependencies_map = HashMap::new();
 
@@ -89,7 +89,7 @@ impl<'a> Handler for DependencyAnalyzer<'a> {
         let mut file_path = ctx.current();
         file_path.push(file_name.as_ref());
         if dependency_checks.is_some() {
-            self.analyze(file_path.clone(), dependency_checks.as_ref().unwrap())?;
+            self.analyze(file_path, dependency_checks.as_ref().unwrap())?;
         }
         Ok(())
     }
