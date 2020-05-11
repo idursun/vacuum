@@ -1,0 +1,8 @@
+app "sway" {
+    config {
+        cd "sway" {
+            file "config"
+        }
+    }
+}
+
