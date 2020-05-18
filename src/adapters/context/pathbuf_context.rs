@@ -7,14 +7,14 @@ impl Context for PathBuf {
         self.clone()
     }
     fn home(&self) -> Self {
-        dirs::home_dir().unwrap()
+        dirs_next::home_dir().unwrap()
     }
     fn config(&self) -> Self {
-        dirs::config_dir().unwrap()
+        dirs_next::config_dir().unwrap()
     }
 
     fn local(&self) -> Self {
-        dirs::data_local_dir().unwrap()
+        dirs_next::data_local_dir().unwrap()
     }
 
     fn sub<S: AsRef<str>>(&self, sub: S) -> Self {
