@@ -1,5 +1,6 @@
 app "gitconfig" {
     home {
         file ".gitconfig"
+        file ".gitignore"
     }
 }
