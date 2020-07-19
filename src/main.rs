@@ -12,6 +12,8 @@ use crate::application::usecase::UseCase;
 use crate::domain::App;
 use std::fs;
 
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
 fn parse_vacuum_files() -> Result<Vec<App>, VacuumError> {
     let dir = std::fs::read_dir("./apps/")?.filter_map(Result::ok);
     let mut apps = Vec::new();
@@ -30,6 +32,7 @@ fn parse_vacuum_files() -> Result<Vec<App>, VacuumError> {
 fn main() -> Result<(), VacuumError> {
     let mut args = std::env::args();
     if args.len() < 2 {
+        println!("vacuum {}", VERSION);
         println!("Usage: vacuum [command] <folder>");
         println!(" commands:");
         println!(" store   : Store configurations files into folder");
