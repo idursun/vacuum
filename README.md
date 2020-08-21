@@ -1,6 +1,6 @@
 # vacuum
 
-![build](https://github.com/idursun/vacuum/workflows/Rust/badge.svg)
+![Build](https://github.com/idursun/vacuum/workflows/Build/badge.svg)
 
 Vacuum is a system-wide configuration file collector.
 
