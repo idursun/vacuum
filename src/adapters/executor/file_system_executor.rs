@@ -63,12 +63,13 @@ where
             }
             let dest_dir = target.parent().expect("Failed to get parent directory");
 
-            if fs::create_dir_all(&dest_dir).is_ok() {
-                if fs::copy(source.as_path(), target.as_path()).is_ok() {
+            fs::create_dir_all(&dest_dir)
+                .and_then(|_| fs::copy(source.as_path(), target.as_path()))
+                .and_then(|_| {
                     self.logger
                         .print(format!("{} {}", "Copy".blue(), source.display()));
-                }
-            }
+                    Ok(())
+                })?;
         }
         Ok(())
     }
