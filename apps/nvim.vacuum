@@ -1,7 +1,7 @@
 app "nvim" {
     config {
         cd "nvim" {
-            file "init.vim" [exists -> install-linux, contains "Plug" -> vim-plug]
+            file "init.vim" [exists -> install-linux, contains "Plug" -> vim-plug-linux]
         }
     }
     local {
