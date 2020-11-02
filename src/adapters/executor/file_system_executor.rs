@@ -9,13 +9,13 @@ use std::marker::PhantomData;
 use std::path::PathBuf;
 
 #[derive(Clone)]
-pub struct FileSystemExecutor<'a, C> {
-    logger: Logger<'a>,
+pub struct FileSystemExecutor<C> {
+    logger: Logger,
     _phantom: PhantomData<C>,
 }
 
-impl<'a, C> FileSystemExecutor<'a, C> {
-    pub fn new(name: &'a str) -> Self {
+impl<C> FileSystemExecutor<C> {
+    pub fn new(name: String) -> Self {
         Self {
             logger: Logger::new(name),
             _phantom: Default::default(),
@@ -23,7 +23,7 @@ impl<'a, C> FileSystemExecutor<'a, C> {
     }
 }
 
-impl<'a, C> Handler for FileSystemExecutor<'a, C>
+impl<C> Handler for FileSystemExecutor<C>
 where
     C: Context<Current = (PathBuf, PathBuf)>,
 {

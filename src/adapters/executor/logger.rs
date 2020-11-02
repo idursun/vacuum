@@ -1,12 +1,12 @@
 use colored::*;
 
 #[derive(Clone)]
-pub struct Logger<'a> {
-    pub name: &'a str,
+pub struct Logger {
+    pub name: String,
 }
 
-impl<'a> Logger<'a> {
-    pub fn new(name: &'a str) -> Self {
+impl Logger {
+    pub fn new(name: String) -> Self {
         Self { name }
     }
 

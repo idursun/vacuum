@@ -18,7 +18,7 @@ impl StoreUseCase {
 
 impl UseCase for StoreUseCase {
     fn run(&self, app: &App) -> Result<(), VacuumError> {
-        let executor = FileSystemExecutor::new(&app.name);
+        let executor = FileSystemExecutor::new(app.name.to_string());
         executor::execute(&executor, &StoreContext::new(self.app_dir.clone()), &app)
     }
 }
