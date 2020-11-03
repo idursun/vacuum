@@ -15,14 +15,14 @@ use std::fs;
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 fn parse_vacuum_files() -> Result<Vec<App>, VacuumError> {
-    let dir = std::fs::read_dir("./apps/")?.filter_map(Result::ok);
     let mut apps = Vec::new();
+    let dir = std::fs::read_dir("./apps/")?.filter_map(Result::ok);
     for entry in dir {
         if !entry.file_type()?.is_file() {
             continue;
         }
 
-        let content = fs::read_to_string(entry.path()).unwrap();
+        let content = fs::read_to_string(entry.path())?;
         let app = PomParser::parse(content)?;
         apps.push(app);
     }
